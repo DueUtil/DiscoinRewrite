@@ -77,7 +77,8 @@ function show_rates()
 {
     header("Content-Type: text/plain");
     $rates = "Current exchange rates for Discoin follows:\n\n";
-    foreach (get_bots() as $bot) {
+    foreach (get_bots() as $bot) 
+    {
         $rates .= "$bot->name: 1 $bot->currency_code => $bot->to_discoin Discoin => $bot->from_discoin\n";
     }
     $rates .= "\n";

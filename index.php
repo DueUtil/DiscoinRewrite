@@ -18,7 +18,6 @@ $headers = apache_request_headers();
 if ($get_request)
 {
     // GET requests
-    
     if ($request === "")
     { 
         echo "Welcome to Discoin V2!";
@@ -40,7 +39,8 @@ if ($get_request)
     } else{
         send_json_error("cannot get $request");
     }  
-} else
+}
+else
 {
     // POST requests
     $request_data = json_decode(file_get_contents("php://input"));
