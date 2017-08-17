@@ -4,8 +4,8 @@
 * 
 * @author MacDue
 */
-require_once("../auth.php");
-require_once("util.php");
+require_once __DIR__."/../auth.php";
+require_once __DIR__."/util.php";
 
 // Connect to the database.
 $manager = new MongoDB\Driver\Manager("mongodb://$user:$pwd@$host/admin?authMechanism=SCRAM-SHA-1");
@@ -14,8 +14,8 @@ define("DATABASE", "discoin");
 
 
 /**
-* Dumps the first item into a collection.
-* Most likely useless here.
+* Gets everything in a collection
+* TODO make this a wrapper for find.
 *
 * @param string $collection The name of the collection
 *
@@ -23,11 +23,9 @@ define("DATABASE", "discoin");
 */
 function get_collection_data($collection) {
     global $manager;
-    // This is for collections made for this site that only have a single block a data
     $find_all_query = new MongoDB\Driver\Query(array());
-    $cursor = $manager->executeQuery("dueutil.$collection",$find_all_query);
-    $data = object_to_array($cursor->toArray()[0]);
-    return $data;
+    $cursor = $manager->executeQuery(DATABASE.".$collection",$find_all_query);
+    return $cursor->toArray();
 }
 
 

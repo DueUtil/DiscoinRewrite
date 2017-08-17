@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . "/../vendor/autoload.php";
-require_once ("util.php");
+require_once __DIR__."/util.php";
 
 /**
  * Basic implementation for Discord stuff.

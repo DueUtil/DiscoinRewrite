@@ -38,7 +38,30 @@ function endsWith($haystack, $needle)
 
 
 
-function strip($sting, $character=array("\r", "\n")) {
+function strip($sting, $character=array("\r", "\n"))
+{
     return str_replace($character, '', $sting);
+}
+
+
+function unauthorized()
+{
+    http_response_code(401);
+    echo "Unauthorized";
+    die();
+}
+
+
+function send_json($data, $status=200)
+{
+    header('Content-Type: application/json');
+    http_response_code($status);
+    echo json_decode($data);
+}
+
+
+function send_json_error($message, $status=400)
+{
+    send_json(["error"=>$message, $status]);
 }
 ?>
