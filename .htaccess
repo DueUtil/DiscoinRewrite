@@ -1,0 +1,5 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_URI} !^/?index.php
+    RewriteRule ^/*(.*) index.php/$1$2
+</IfModule>
