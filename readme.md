@@ -5,3 +5,4 @@ By MacDue and Fires
 
 API Spec: https://discoin.gitbooks.io/docs/api.html
 
+A rewite of Discoin by austinhuang.
