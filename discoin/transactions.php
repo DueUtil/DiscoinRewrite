@@ -26,6 +26,12 @@ define("TRANSACTIONS_WEBHOOK", "https://discordapp.com/api/webhooks/348178790863
 
 /*
  * A Discoin transaction
+ * 
+ * @param \Discoin\Users\User $user A user that is the sender
+ * @param string $source The souce bot currency
+ * @param string $target $user The target bot currency
+ * @param float $amount The amount the transaction (in the source currency)
+ * @param string $type Transaction type ("normal" or "refund")
  *  
  * @author MacDue
  */
@@ -122,13 +128,15 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         return sha1(uniqid(time().$this->user, True));
     }
     
-    public function save()
-    {
-        \MacDue\DB\upsert("transactions", $this->receipt, $this);
-    }
-    
-    // A static helper (factory?) to help making transactions.
-    public static function create_transaction($source, $transaction_info)
+    /*
+     * A factory? for making transactions.
+     * 
+     * @param \Discoin\Bots\Bot $source_bot The source bot
+     * @param stdClass $transaction_info The parsed JSON transaction info (see API docs).
+     * 
+     * returns Transaction The Discoin transaction
+     */
+    public static function create_transaction($source_bot, $transaction_info)
     {
         if (isset($transaction_info->user, $transaction_info->amount, $transaction_info->exchangeTo))
         {
@@ -142,7 +150,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
             }
             $amount = floatval($transaction_info->amount);
             
-            $transaction = new Transaction($user, $source->currency_code, strtoupper($transaction_info->exchangeTo), $amount);
+            $transaction = new Transaction($user, $source_bot->currency_code, strtoupper($transaction_info->exchangeTo), $amount);
             return $transaction;
         } 
         else
@@ -172,6 +180,11 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         return "||$this->receipt|| "
                 .format_timestamp($this->timestamp)
                 ." || $processed || $this->source  || $this->target  || $this->amount_discoin";
+    }
+    
+    public function save()
+    {
+        \MacDue\DB\upsert("transactions", $this->receipt, $this);
     }
     
 }

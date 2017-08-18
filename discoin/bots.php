@@ -85,13 +85,13 @@ class Bot extends \Discoin\Object
         return $transactions;
     }
     
+    public function __toString(){
+        return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin";
+    }
+    
     public function save()
     {
         \MacDue\DB\upsert("bots", $this->owner.'/'.$this->name, $this);
-    }
-    
-    public function __toString(){
-        return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin";
     }
     
 }

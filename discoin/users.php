@@ -27,7 +27,7 @@ class User extends \Discoin\Object
 {
     public $id;
     public $daily_exchanges = array();
-    public $first_transaction_time = -1;
+    private $first_transaction_time = -1;
     
       
     public function __construct($id)

@@ -8,6 +8,12 @@
 * Licence: Not chosen yet!
 * 
 * @author MacDue
+* 
+* Some notes:
+*  Right now I don't use loads of getters and setters for stuff in classes.
+*  I just kinda trust it will be used properly (and don't want to write)
+*  loads of getters and setters (and I've been doing a bunch of Python).
+* 
 */
 
 require_once("scripts/util.php");
