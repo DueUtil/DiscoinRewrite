@@ -29,6 +29,7 @@ function startsWith($haystack, $needle)
      return (substr($haystack, 0, $length) === $needle);
 }
 
+
 function endsWith($haystack, $needle)
 {
     $length = strlen($needle);
@@ -42,6 +43,12 @@ function endsWith($haystack, $needle)
 function str_contains($haystack, $needle)
 {
     return strpos($haystack, $needle) !== false;
+}
+
+
+function format_timestamp($timestamp)
+{
+    return gmdate("d/m/Y \a\\t H:i", $timestamp);
 }
 
 

@@ -50,7 +50,7 @@ if ($get_request)
         // Get get the bot using the auth token.
         // Outputs Unauthorized (in json) if the token is invalid.
         $bot = requires_discoin_auth();
-        send_json(Discoin\Transactions\get_transactions_for_bot($bot));
+        send_json($bot->get_transactions());
     } 
     else if (startsWith($request, "/verify"))
     {
@@ -61,17 +61,20 @@ if ($get_request)
             // Adds the user (if their email is not a spam one)
             Discoin\Users\add_user($discord_auth->get_user_details());
         }
-        else
-        {
-            // They probably hit cancle.
-            echo "Not logged in?!";
-        }
     } 
-    else if ($request === "/record")
+    else if (startsWith($request, "/record"))
     {
-        requires_discord_auth("/record");
-        // TODO: Show record.
-    } else 
+        // User transaction record
+        $discord_auth = requires_discord_auth("/record");
+        if ($discord_auth->logged_in())
+        {
+            $user = Discoin\Users\get_user($discord_auth->get_user_details()["id"]);
+            if (!is_null($user))
+                $user->show_transactions();
+            else
+                echo "You need to verify before you view your record.";
+        }
+    } else
     {
         // Unknown GET (the fuck are you guys doing?)
         send_json_error("invalid get $request");

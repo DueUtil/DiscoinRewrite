@@ -9,6 +9,7 @@ namespace Discoin\Transactions;
 
 require_once __DIR__."/../scripts/dbconn.php";
 require_once __DIR__."/../scripts/util.php";
+require_once __DIR__."/../scripts/discordstuff.php";
 require_once __DIR__."/discoin.php";
 require_once __DIR__."/bots.php";
 require_once __DIR__."/users.php";
@@ -16,8 +17,18 @@ require_once __DIR__."/users.php";
 
 use function \MacDue\Util\send_json as send_json;
 use function \MacDue\Util\send_json_error as send_json_error;
+use function \MacDue\Util\format_timestamp as format_timestamp;
 
 
+// A webhook for new transaction alerts.
+define("TRANSACTIONS_WEBHOOK", "https://discordapp.com/api/webhooks/348178790863732737/geIjoZrNTzqFrN4Xw2K89cQYgDScWqT3nVUO2y7C61QadJBmCQFVXWYf2ctcJX21LKqb");
+
+
+/*
+ * A Discoin transaction
+ *  
+ * @author MacDue
+ */
 class Transaction extends \Discoin\Object implements \JsonSerializable
 {
     public $user;
@@ -28,6 +39,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
     public $receipt;
     public $type;
     public $processed = False;
+    public $process_time = 0;
     
     
     function __construct($user, $source, $target, $amount, $type="normal")
@@ -65,10 +77,12 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         // If we get here we're okay!
         $this->timestamp = time();
         $this->receipt = $this->get_receipt();
-        var_dump($user);
         $user->log_transaction($this);
         $this->approve($target_bot->limit_user - $user->daily_exchanges[$target]);
         $this->save();
+        
+        // Send a nice little webhook!
+        $this->new_transaction_webhook();
     }
     
     private static function decline($reason, $limit=null)
@@ -89,6 +103,20 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
                    "resultAmount" => $this->amount_target]);
     }
     
+    private function new_transaction_webhook()
+    {
+        // Makes a nice little embed for the transaction
+        $transaction_embed = new \Discord\Embed($title=":new: New transaction!", $colour=7506394);
+        $transaction_embed->add_field($name="User", $value=$this->user, $inline=True);
+        $transaction_embed->add_field($name="Exchange", 
+                                      $value="$this->ammount_source $this->source => $this->amount_target $this->target", 
+                                      $inline=True);
+        $transaction_embed->add_field($name="Receipt", $value=$this->receipt);
+        $transaction_embed->set_footer($text="Sent ".format_timestamp($this->timestamp));
+        
+        \Discord\send_webhook(TRANSACTIONS_WEBHOOK, ["embeds" => [$transaction_embed]]);
+    }
+    
     private function get_receipt()
     {
         return sha1(uniqid(time().$this->user, True));
@@ -99,7 +127,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         \MacDue\DB\upsert("transactions", $this->receipt, $this);
     }
     
-    
+    // A static helper (factory?) to help making transactions.
     public static function create_transaction($source, $transaction_info)
     {
         if (isset($transaction_info->user, $transaction_info->amount, $transaction_info->exchangeTo))
@@ -124,7 +152,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         return null;
     }
     
-    
+    // JSON for GET /transactions
     public function jsonSerialize() {
         
           return ["user" => $this->user,
@@ -132,25 +160,20 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
                   "source" => $this->source,
                   "amount" => $this->amount_target,
                   "receipt" => $this->receipt];
-      
     }
     
-}
-
-
-function get_transactions_for_bot($bot)
-{
-    $raw_transactions = \MacDue\DB\get_collection_data("transactions", ["target" => $bot->currency_code, "processed" => False]);
-    $transactions = array();
-    
-    foreach ($raw_transactions as $transaction_data)
-    {
-        $transaction = Transaction::load($transaction_data);
-        $transaction->processed = True;
-        $transaction->save();
-        $transactions[] = $transaction;
+    public function __toString(){
+        
+        if ($this->processed)
+            $processed = format_timestamp($this->process_time);
+        else
+            $processed = "UNPROCESSED        ";
+        // Seg fault if you make a typo /r/lolphp
+        return "||$this->receipt|| "
+                .format_timestamp($this->timestamp)
+                ." || $processed || $this->source  || $this->target  || $this->amount_discoin";
     }
-    return $transactions;
+    
 }
 
 ?>

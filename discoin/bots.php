@@ -10,7 +10,9 @@ namespace Discoin\Bots;
 require_once __DIR__."/../scripts/dbconn.php";
 require_once __DIR__."/../scripts/util.php";
 require_once __DIR__."/discoin.php";
+require_once __DIR__."/transactions.php";
 
+use \Discoin\Transactions\Transaction as Transaction;
 
 /*
  * A Bot account for Discoin
@@ -59,13 +61,37 @@ class Bot extends \Discoin\Object
         $this->save();
     }
     
+    /*
+     * Returns unprocessed transtions for a bot.
+     * All returned transactions will be marked as processed.
+     * 
+     * @author MacDue
+     */
+    public function get_transactions()
+    {
+        $raw_transactions = \MacDue\DB\get_collection_data("transactions",
+                                                          ["target" => $this->currency_code,
+                                                           "processed" => False]);
+        $transactions = array();
+        
+        foreach ($raw_transactions as $transaction_data)
+        {
+            $transaction = Transaction::load($transaction_data);
+            $transaction->processed = True;
+            $transaction->process_time = time();
+            $transaction->save();
+            $transactions[] = $transaction;
+        }
+        return $transactions;
+    }
+    
     public function save()
     {
         \MacDue\DB\upsert("bots", $this->owner.'/'.$this->name, $this);
     }
     
     public function __toString(){
-        return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin | $this->auth_key";
+        return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin";
     }
     
 }
