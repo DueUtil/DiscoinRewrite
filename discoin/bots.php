@@ -104,7 +104,7 @@ function add_bot($owner, $name, $currency_code, $to_discoin, $from_discoin)
     require_once("../scripts/discordauth.php");
     $user_info = $discord_auth->get_user_details();
     
-    if (!is_owner($user_info["id"]))
+    if (!\Discoin\is_owner($user_info["id"]))
     {
         return False;
     }
