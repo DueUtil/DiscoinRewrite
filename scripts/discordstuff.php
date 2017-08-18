@@ -1,16 +1,16 @@
 <?php
-namespace Discord;
-
-require_once __DIR__ . "/../vendor/autoload.php";
-require_once __DIR__."/util.php";
-
 /**
  * Basic implementation for Discord stuff.
  *
  * @author MacDue
  */
  
- 
+namespace Discord;
+
+require_once __DIR__ . "/../vendor/autoload.php";
+require_once __DIR__."/util.php";
+
+
 /**
  * A Discord embed object
  *

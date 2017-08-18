@@ -1,11 +1,13 @@
 <?php
-namespace MacDue\Util;
-
 /** 
 * Random util functions
 * 
 * @author MacDue
 */
+
+namespace MacDue\Util;
+
+require_once __DIR__."/../discoin/bots.php";
 
 
 /** 
@@ -27,14 +29,6 @@ function startsWith($haystack, $needle)
      return (substr($haystack, 0, $length) === $needle);
 }
 
-
-function requires_auth($page)
-{
-    $request = $page;
-    return require_once __DIR__."/discordauth.php";
-}
-
-
 function endsWith($haystack, $needle)
 {
     $length = strlen($needle);
@@ -51,10 +45,29 @@ function str_contains($haystack, $needle)
 }
 
 
-
 function strip($sting, $character=array("\r", "\n", " "))
 {
     return str_replace($character, '', $sting);
+}
+
+
+function requires_discord_auth($page)
+{
+    $request = $page;
+    return require_once __DIR__."/discordauth.php";
+}
+
+/* VVV General util stuff for logins and JSON VVV */
+
+function requires_discoin_auth()
+{
+    $headers = apache_request_headers();
+    $auth_key = \MacDue\Util\get($headers["Authorization"]);
+    if (!is_null($auth_key))
+    {
+        return \Discoin\Bots\get_bot(["auth_key" => $auth_key]);
+    }
+    send_json_error("unauthorized", 401);
 }
 
 
@@ -70,13 +83,14 @@ function send_json($data, $status=200)
 {
     header('Content-Type: application/json');
     http_response_code($status);
-    echo json_decode($data);
+    echo json_encode($data);
 }
 
 
 function send_json_error($message, $status=400)
 {
-    send_json(["status" => "error", "reason" => $message, $status]);
+    send_json(["status" => "error", "reason" => $message], $status);
+    die();
 }
 
 

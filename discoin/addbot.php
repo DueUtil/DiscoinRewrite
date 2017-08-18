@@ -25,7 +25,7 @@ if (!isset($_POST["owner"], $_POST["botName"], $_POST["currencyCode"],
 } else {
     $owner = $_POST["owner"];
     $bot_name = $_POST["botName"];
-    $currency_code = $_POST["currencyCode"];
+    $currency_code = strtoupper($_POST["currencyCode"]);
     $to_discoin = floatval($_POST["toDiscoin"]);
     $from_discoin = floatval($_POST["fromDiscoin"]);
     if (!(is_numeric($owner) && is_string($bot_name) && is_string($currency_code)

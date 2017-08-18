@@ -1,11 +1,12 @@
 <?php
-namespace MacDue\DB;
-
 /**
 * Crappy DB connection
 * 
 * @author MacDue
 */
+
+namespace MacDue\DB;
+
 require_once __DIR__."/../auth.php";
 require_once __DIR__."/util.php";
 
@@ -16,8 +17,7 @@ define("DATABASE", "discoin");
 
 
 /**
-* Gets everything in a collection
-* TODO make this a wrapper for find.
+* Gets stuff from a collection
 *
 * @param string $collection The name of the collection
 *

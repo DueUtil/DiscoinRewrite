@@ -1,12 +1,13 @@
 <?php
-namespace Discord\Auth;
-
 /**
  * Crappy Discord Auth implementation.
  * (there are not any docs for this)
  *
  * @author MacDue
  */
+ 
+namespace Discord\Auth;
+
 require_once __DIR__."/discordstuff.php";
 require_once __DIR__."/../auth.php";
 require_once __DIR__."/../scripts/util.php";
@@ -32,7 +33,7 @@ if (!isset($_SESSION['access_token']))
         die();
     }
 }
-// Login worked!
+// Login worked! (check with $discord_auth->logged_in())
 
 
 if (isset($_SESSION['access_token']))
@@ -48,6 +49,7 @@ function logout()
     session_destroy();
 }
 
+// Return auth.
 return $discord_auth;
 
 ?>

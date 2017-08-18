@@ -1,4 +1,10 @@
 <?php
+/*
+ * Stuff to handle Discoin users.
+ * 
+ * @author MacDue
+ */
+
 namespace Discoin\Users;
 
 require_once __DIR__."/../scripts/dbconn.php";
@@ -28,13 +34,13 @@ class User extends \Discoin\Object
     
     public function exceeds_daily_limit($from, $to, $amount_discoin)
     {
-        if (time() - $first_transaction_time > TRANSACTION_LIMIT_RESET)
+        if (time() - $this->first_transaction_time > TRANSACTION_LIMIT_RESET)
         {
             $this->daily_exchanges = array();
             $this->first_transaction_time = time();
             $this->save();
         }
-        return exceeds_limit($amount_discoin, \MacDue\Util\get($daily_exchanges[$to->currency_code], 0), $to->limit_user);
+        return $this->exceeds_limit($amount_discoin, \MacDue\Util\get($daily_exchanges[$to->currency_code], 0), $to->limit_user);
     }
   
     public function exceeds_global_limit($from, $to, $amount_discoin)
@@ -45,7 +51,7 @@ class User extends \Discoin\Object
             $to->first_transaction_time = time();
             $to->save();
         }
-        return exceeds_limit($amount_discoin, $to->exchanged_today, $to->limit_global);
+        return $this->exceeds_limit($amount_discoin, $to->exchanged_today, $to->limit_global);
     }
     
     public function log_transaction($transaction)
@@ -54,11 +60,11 @@ class User extends \Discoin\Object
         $target_currency = $transaction->target;
         if (!isset($this->daily_exchanges[$target_currency]))
         {
-            $this->daily_exchanges[$target_currency] = $transaction->amount;
+            $this->daily_exchanges[$target_currency] = $transaction->amount_discoin;
         }
         else
         {
-            $this->daily_exchanges[$target_currency] += $transaction->amount;
+            $this->daily_exchanges[$target_currency] += $transaction->amount_discoin;
         }
         $this->save();
     }
@@ -72,20 +78,20 @@ class User extends \Discoin\Object
 
 function get_user($id)
 {
-    $user_data = \MacDue\DB\get_collection_data("bots", ["id" => $id]);
+    $user_data = \MacDue\DB\get_collection_data("users", ["id" => $id]);
     if (sizeof($user_data) == 0)
         return null;
-    return User::load($user_data);
+    return User::load($user_data[0]);
 }
 
 
-function add_user($user)
+function add_user($discord_user)
 {
-    $user = get_user($user["id"]);
-    if (!is_null($user))
+    $user = get_user($discord_user["id"]);
+    if (is_null($user))
     {
         $burner_emails = file_get_contents(BURNER_EMAILS);
-        $email_domain = \MacDue\Util\strip(explode("@", $user["email"])[1]);
+        $email_domain = \MacDue\Util\strip(explode("@", $discord_user["email"])[1]);
         if (\MacDue\Util\str_contains($burner_emails, $email_domain)) 
         {
             echo "Nope! Please use a real email to verify with Discoin!";
@@ -94,7 +100,7 @@ function add_user($user)
         else
         {
             echo "Verified! You can now use Discoin!";
-            return new User($user["id"]);
+            return new User($discord_user["id"]);
         }
     }
     else 

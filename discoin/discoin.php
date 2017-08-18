@@ -1,14 +1,28 @@
 <?php
+/*
+ * General Discoin stuff.
+ * 
+ * @author MacDue
+ */
+ 
 namespace Discoin;
 
 define("TRANSACTION_LIMIT_RESET", 86400);
 
 
+/*
+ * Base object for other Discoin objects
+ * 
+ * @author MacDue
+ */
 class Object
 {
   
     public static function load($std_obj)
     {
+        foreach ($std_obj as $attr_name => $value)
+            if (is_object($value))
+                $std_obj->$attr_name = (array) $value;
         $temp = serialize($std_obj);
         $class_name = get_called_class();
         // This is a great hack!

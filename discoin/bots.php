@@ -1,4 +1,10 @@
 <?php
+/*
+ * Stuff to handle bots (that use Discoin)
+ * 
+ * @author MacDue
+ */
+ 
 namespace Discoin\Bots;
 
 require_once __DIR__."/../scripts/dbconn.php";
@@ -6,6 +12,17 @@ require_once __DIR__."/../scripts/util.php";
 require_once __DIR__."/discoin.php";
 
 
+/*
+ * A Bot account for Discoin
+ * 
+ * @param string $owner The bot owner's ID
+ * @param string $name The bot's name
+ * @param string $currency_code The bot's currency code
+ * @param float $to_discoin Bots currency value in Discoin
+ * @param float $from_discoin Discoin value in bot (<= to_discoin)
+ * 
+ * @author MacDue
+ */
 class Bot extends \Discoin\Object 
 {  
     public $owner;
@@ -30,7 +47,8 @@ class Bot extends \Discoin\Object
         $this->save();
     }
     
-    public function generate_api_key() {
+    // Generates the API key
+    private function generate_api_key() {
         return hash('sha256',"DisnodeTeamSucks".time().$this->owner);
     }
     
@@ -65,8 +83,7 @@ function add_bot($owner, $name, $currency_code, $to_discoin, $from_discoin)
         return False;
     }
     
-    $bot = new Bot($owner, $name, $currency_code, $to_discoin, $from_discoin);
-    return $bot;
+    return new Bot($owner, $name, $currency_code, $to_discoin, $from_discoin);
 }
 
 
@@ -86,7 +103,7 @@ function get_bot($query)
     $bot_data = \MacDue\DB\get_collection_data("bots", $query);
     if (sizeof($bot_data) == 0)
         return null;
-    return Bot::load($bot_data);
+    return Bot::load($bot_data[0]);
 }
 
 

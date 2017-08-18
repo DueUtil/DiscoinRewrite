@@ -1,35 +1,43 @@
 <?php
 /*
-* Simple requests handler.
-* This simple script just handles the requests (of course).
-* Transactions and stuff will be handled in other files.
+* Discoin rewrite (by MacDue)
+* A quick attempt at making Discoin again.
+* 
+* See the spec at: https://github.com/MacDue/DiscoinRewrite
+* 
+* Licence: Not chosen yet!
 * 
 * @author MacDue
 */
+
 require_once("scripts/util.php");
 require_once("discoin/transactions.php");
 require_once("discoin/bots.php");
 require_once("discoin/users.php");
 
-
+// Common functions
 use function \MacDue\Util\startsWith as startsWith;
-use function \MacDue\Util\requires_auth as requires_auth;
+use function \MacDue\Util\requires_discord_auth as requires_discord_auth;
+use function \MacDue\Util\requires_discoin_auth as requires_discoin_auth;
+use function \MacDue\Util\send_json as send_json;
 use function \MacDue\Util\send_json_error as send_json_error;
 
-
+// Get request type and page
 $request = rtrim($_SERVER['REQUEST_URI'], "/");
 $get_request = $_SERVER['REQUEST_METHOD'] === "GET";
-$headers = apache_request_headers();
-$auth_key = \MacDue\Util\get($headers["Authorization"]);
 header("Content-Type: text/plain");
 
 
 if ($get_request)
 {
-    // GET requests
+    /*
+     * Handle all GET requests.
+     * Most things (meant for bots will be JSON)
+     */
+     
     if ($request === "")
     { 
-        // Welcome
+        // Welcome page
         echo "Welcome to Discoin V2!";
     }
     else if ($request === "/rates")
@@ -39,46 +47,59 @@ if ($get_request)
     } 
     else if ($request === "/transactions")
     {
-        // TODO: Stuff
+        // Get get the bot using the auth token.
+        // Outputs Unauthorized (in json) if the token is invalid.
+        $bot = requires_discoin_auth();
+        send_json(Discoin\Transactions\get_transactions_for_bot($bot));
     } 
     else if (startsWith($request, "/verify"))
     {
         // User verification
-        $discord_auth = requires_auth("/verify");
+        $discord_auth = requires_discord_auth("/verify");
         if ($discord_auth->logged_in())
         {
+            // Adds the user (if their email is not a spam one)
             Discoin\Users\add_user($discord_auth->get_user_details());
         }
         else
         {
+            // They probably hit cancle.
             echo "Not logged in?!";
         }
     } 
     else if ($request === "/record")
     {
-        require_once("scripts/discordauth.php");
+        requires_discord_auth("/record");
+        // TODO: Show record.
     } else 
     {
-        // Unknown request.
-        send_json_error("cannot get $request");
+        // Unknown GET (the fuck are you guys doing?)
+        send_json_error("invalid get $request");
     }  
 } else 
 {
-    // POST requests
+    /*
+     * Handle all POST requests.
+     * Everything should be JSON (unless I've messed up)
+     */
+     
     $request_data = json_decode(file_get_contents("php://input"));
-    if (is_null($json) && json_last_error() !== JSON_ERROR_NONE)
+    if (is_null($request_data) && json_last_error() !== JSON_ERROR_NONE)
     {
-        // Invalid json.
+        // Invalid json :(
         send_json_error("invalid json");
     } else if ($request === "/transaction")
     {
-        // TODO: Stuff
+        // Creates a transaction (if the bot auth is valid)
+        $bot = requires_discoin_auth();
+        Discoin\Transactions\Transaction::create_transaction($bot, $request_data);
     } else if ($request === "/transaction/reverse")
     {
-        // TODO: Stuff
+        // TODO: Reverse transactions.
     } else
     {
-        send_json_error("cannot post $request");
+        // >:(
+        send_json_error("invalid post $request");
     }
 }
 
