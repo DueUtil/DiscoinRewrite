@@ -1,10 +1,12 @@
 <?php
+namespace Discoin\Bots;
+
 require_once __DIR__."/../scripts/dbconn.php";
 require_once __DIR__."/../scripts/util.php";
 require_once __DIR__."/discoin.php";
 
 
-class Bot
+class Bot extends \Discoin\Object 
 {
   
     public $owner;
@@ -41,6 +43,10 @@ class Bot
         return $this->owner.'/'.$this->name;
     }
     
+    public function __toString(){
+        return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin";
+    }
+    
     public function save()
     {
 
@@ -69,7 +75,12 @@ function add_bot($owner, $name, $currency_code, $to_discoin, $from_discoin)
 
 function get_bots()
 {
-    return get_collection_data("bots");
+    $bots = \MacDue\DB\get_collection_data("bots");
+    foreach ($bots as $id => $bot_data)
+    {
+        $bots[$id] = Bot::load($bot_data);
+    }
+    return $bots;
 }
 
 
@@ -79,10 +90,10 @@ function show_rates()
     $rates = "Current exchange rates for Discoin follows:\n\n";
     foreach (get_bots() as $bot) 
     {
-        $rates .= "$bot->name: 1 $bot->currency_code => $bot->to_discoin Discoin => $bot->from_discoin\n";
+        $rates .= "$bot\n";
     }
     $rates .= "\n";
-    $rates .= "Note that certain transaction limit may exist. Details will be displayed when a transaction is approved.";
+    $rates .= "Note that certain transaction limits may exist. Details will be displayed when a transaction is approved.";
     echo $rates;
 }
 

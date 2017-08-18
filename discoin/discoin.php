@@ -1,5 +1,19 @@
 <?php
+namespace Discoin;
 
+class Object
+{
+  
+    public static function load($std_obj)
+    {
+        $temp = serialize($std_obj);
+        $class_name = get_called_class();
+        // This is a great hack!
+        $temp = preg_replace("@^O:8:\"stdClass\":@","O:".strlen($class_name).":\"$class_name\":",$temp);
+        return unserialize($temp);
+    }
+  
+}
 
 function get_config()
 {

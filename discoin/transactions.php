@@ -1,8 +1,11 @@
 <?php
+namespace Discoin\Transactions;
+
 require_once __DIR__."/../scripts/dbconn.php";
+require_once __DIR__."/discoin.php";
 
 
-class Transaction
+class Transaction extends \Discoin\Object
 {
     
     public $user;

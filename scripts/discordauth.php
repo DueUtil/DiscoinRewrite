@@ -1,4 +1,6 @@
 <?php
+namespace Discord\Auth;
+
 /**
  * Crappy Discord Auth implementation.
  * (there are not any docs for this)
@@ -11,8 +13,8 @@ require_once __DIR__."/../scripts/util.php";
 
 
 session_name('discoin_auth');
-$discord_auth = new DiscordAuth(['clientId' => CLIENT_ID, 'clientSecret' => CLIENT_SECRET,
-                                 'redirectUri' => "http://$_SERVER[HTTP_HOST]$request"]);
+$discord_auth = new \Discord\DiscordAuth(['clientId' => CLIENT_ID, 'clientSecret' => CLIENT_SECRET,
+                                          'redirectUri' => "http://$_SERVER[HTTP_HOST]$request"]);
 session_start();
 
 

@@ -13,6 +13,7 @@ require_once("discoin/bots.php");
 $request = rtrim($_SERVER['REQUEST_URI'], "/");
 $get_request = $_SERVER['REQUEST_METHOD'] === "GET";
 $headers = apache_request_headers();
+$auth_key = \MacDue\Util\get($headers["Authorization"]);
 
 
 if ($get_request)
@@ -24,7 +25,7 @@ if ($get_request)
     }
     else if ($request === "/rates")
     {
-        show_rates();
+        Discoin\Bots\show_rates();
     } 
     else if ($request === "/transactions") 
     {
@@ -37,7 +38,7 @@ if ($get_request)
         require_once("scripts/discordauth.php");
         
     } else{
-        send_json_error("cannot get $request");
+        \MacDue\Util\send_json_error("cannot get $request");
     }  
 }
 else
@@ -46,14 +47,14 @@ else
     $request_data = json_decode(file_get_contents("php://input"));
     if (is_null($json) && json_last_error() !== JSON_ERROR_NONE) {
         // Invalid json.
-        send_json_error("invalid json");
+        \MacDue\Util\send_json_error("invalid json");
     }
     else if ($request === "/transaction") {
         // TODO: Stuff
     } else if ($request === "/transaction/reverse") {
         // TODO: Stuff
     } else {
-        send_json_error("cannot post $request");
+        \MacDue\Util\send_json_error("cannot post $request");
     }
 }
 

@@ -1,4 +1,6 @@
 <?php
+namespace MacDue\DB;
+
 /**
 * Crappy DB connection
 * 
@@ -8,7 +10,7 @@ require_once __DIR__."/../auth.php";
 require_once __DIR__."/util.php";
 
 // Connect to the database.
-$manager = new MongoDB\Driver\Manager("mongodb://$user:$pwd@$host/admin?authMechanism=SCRAM-SHA-1");
+$manager = new \MongoDB\Driver\Manager("mongodb://$user:$pwd@$host/admin?authMechanism=SCRAM-SHA-1");
 define("DATABASE", "discoin");
 
 
@@ -21,10 +23,10 @@ define("DATABASE", "discoin");
 *
 * @author MacDue
 */
-function get_collection_data($collection) {
+function get_collection_data($collection, $query_array=array()) {
     global $manager;
-    $find_all_query = new MongoDB\Driver\Query(array());
-    $cursor = $manager->executeQuery(DATABASE.".$collection",$find_all_query);
+    $query = new \MongoDB\Driver\Query($query_array);
+    $cursor = $manager->executeQuery(DATABASE.".$collection",$query);
     return $cursor->toArray();
 }
 
@@ -41,9 +43,9 @@ function get_collection_data($collection) {
 */
 function upsert($collection, $_id, $data, $set_mode='$set') {
     global $manager;
-    $bulk = new MongoDB\Driver\BulkWrite;
+    $bulk = new \MongoDB\Driver\BulkWrite;
     $bulk->update(['_id' => $_id], ['$set' => $data], ['upsert' => true]);
-    $write_concern = new MongoDB\Driver\WriteConcern(MongoDB\Driver\WriteConcern::MAJORITY, 1000);
+    $write_concern = new \MongoDB\Driver\WriteConcern(MongoDB\Driver\WriteConcern::MAJORITY, 1000);
     $result = $manager->executeBulkWrite(DATABASE.".$collection", $bulk, $write_concern);
 }
 
@@ -59,7 +61,7 @@ function upsert($collection, $_id, $data, $set_mode='$set') {
 */
 function delete_document($_id, $collection, $limit=1) {
     global $manager;
-    $bulk = new MongoDB\Driver\BulkWrite;
+    $bulk = new \MongoDB\Driver\BulkWrite;
     $bulk->delete(['_id' => $_id], ['limit' => $limit]);
     $result = $manager->executeBulkWrite(DATABASE.".$collection", $bulk);
 }

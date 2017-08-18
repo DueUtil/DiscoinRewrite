@@ -14,8 +14,8 @@ if (!$discord_auth->get_auth()["login"]) {
 }
 
 $user_info = $discord_auth->get_user_details();
-if (!is_owner($user_info["id"])) {
-      unauthorized();
+if (!\Discoin\Util\is_owner($user_info["id"])) {
+      \MacDue\Util\unauthorized();
 }
 
 if (!isset($_POST["owner"], $_POST["botName"], $_POST["currencyCode"],
@@ -34,7 +34,7 @@ if (!isset($_POST["owner"], $_POST["botName"], $_POST["currencyCode"],
         echo "BAD REQUEST";
     } else {
         http_response_code(200);
-        $bot = add_bot($owner, $bot_name, $currency_code, $to_discoin, $from_discoin);
+        $bot = \Discoin\Bots\add_bot($owner, $bot_name, $currency_code, $to_discoin, $from_discoin);
         echo $bot->auth_key;
     }
 }

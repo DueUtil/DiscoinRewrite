@@ -1,4 +1,6 @@
 <?php
+namespace MacDue\Util;
+
 /** 
 * Random util functions
 * 
@@ -63,5 +65,10 @@ function send_json($data, $status=200)
 function send_json_error($message, $status=400)
 {
     send_json(["error"=>$message, $status]);
+}
+
+
+function get(&$var, $default=null) {
+    return isset($var) ? $var : $default;
 }
 ?>
