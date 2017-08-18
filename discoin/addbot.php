@@ -8,6 +8,7 @@ require_once __DIR__."/../scripts/util.php";
 require_once __DIR__."/discoin.php";
 require_once __DIR__."/bots.php";
 
+use function \MacDue\Util\unauthorized as unauthorized;
 
 if (!$discord_auth->logged_in()) {
     unauthorized();
@@ -15,7 +16,7 @@ if (!$discord_auth->logged_in()) {
 
 $user_info = $discord_auth->get_user_details();
 if (!\Discoin\is_owner($user_info["id"])) {
-      \MacDue\Util\unauthorized();
+    unauthorized();
 }
 
 if (!isset($_POST["owner"], $_POST["botName"], $_POST["currencyCode"],

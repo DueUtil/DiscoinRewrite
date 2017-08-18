@@ -43,13 +43,9 @@ function is_owner($user)
     $config = get_config();
     
     foreach ($config->owners as $owner)
-    {
         if ($owner->user === $user)
-        {
             return True;
-        }
-        return False;
-    }
+    return False;
 }
 
 ?>
