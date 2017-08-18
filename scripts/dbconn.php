@@ -45,7 +45,7 @@ function upsert($collection, $_id, $data, $set_mode='$set') {
     global $manager;
     $bulk = new \MongoDB\Driver\BulkWrite;
     $bulk->update(['_id' => $_id], ['$set' => $data], ['upsert' => true]);
-    $write_concern = new \MongoDB\Driver\WriteConcern(MongoDB\Driver\WriteConcern::MAJORITY, 1000);
+    $write_concern = new \MongoDB\Driver\WriteConcern(\MongoDB\Driver\WriteConcern::MAJORITY, 1000);
     $result = $manager->executeBulkWrite(DATABASE.".$collection", $bulk, $write_concern);
 }
 

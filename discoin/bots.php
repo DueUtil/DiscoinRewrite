@@ -7,13 +7,16 @@ require_once __DIR__."/discoin.php";
 
 
 class Bot extends \Discoin\Object 
-{
-  
+{  
     public $owner;
     public $currency_code;
     public $to_discoin;
     public $from_discoin;
     public $auth_key;
+    public $limit_user = 2500;
+    public $limit_global = 1000000;
+    public $exchanged_today = 0;
+    public $first_transaction_time = -1;
     
     
     function __construct($owner, $name, $currency_code, $to_discoin, $from_discoin)
@@ -31,7 +34,6 @@ class Bot extends \Discoin\Object
         return hash('sha256',"DisnodeTeamSucks".time().$this->owner);
     }
     
-    
     public function update_rates($to_discoin, $from_discoin)
     {
         $this->to_discoin = $to_discoin;
@@ -39,18 +41,13 @@ class Bot extends \Discoin\Object
         $this->save();
     }
     
-    public function get_id(){
-        return $this->owner.'/'.$this->name;
+    public function save()
+    {
+        \MacDue\DB\upsert("bots", $this->owner.'/'.$this->name, $this);
     }
     
     public function __toString(){
-        return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin";
-    }
-    
-    public function save()
-    {
-
-        upsert("bots", $this->get_id(), $this);
+        return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin | $this->auth_key";
     }
     
 }
@@ -84,9 +81,17 @@ function get_bots()
 }
 
 
+function get_bot($query)
+{
+    $bot_data = \MacDue\DB\get_collection_data("bots", $query);
+    if (sizeof($bot_data) == 0)
+        return null;
+    return Bot::load($bot_data);
+}
+
+
 function show_rates()
 {
-    header("Content-Type: text/plain");
     $rates = "Current exchange rates for Discoin follows:\n\n";
     foreach (get_bots() as $bot) 
     {

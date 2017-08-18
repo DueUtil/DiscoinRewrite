@@ -1,6 +1,9 @@
 <?php
 namespace Discoin;
 
+define("TRANSACTION_LIMIT_RESET", 86400);
+
+
 class Object
 {
   
@@ -12,7 +15,7 @@ class Object
         $temp = preg_replace("@^O:8:\"stdClass\":@","O:".strlen($class_name).":\"$class_name\":",$temp);
         return unserialize($temp);
     }
-  
+    
 }
 
 function get_config()

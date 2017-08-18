@@ -213,8 +213,9 @@ class DiscordAuth
     public $provider;
     public $scopes;
 
-    function __construct($client_details, $scopes = ['identify'])
+    public function __construct($client_details, $scopes = ['identify', 'email'])
     {
+        $client_details['scope'] = $scopes;
         $this->provider = new \Discord\OAuth\Discord($client_details);
         $this->scopes = $scopes;
     }
@@ -222,7 +223,7 @@ class DiscordAuth
     /**
      * Crappy function to attempt to check for auth and try again if we lose it.
      */
-    function check_auth()
+    public function check_auth()
     {
         if (isset($_SESSION['access_token'])) {
             try {
@@ -250,7 +251,7 @@ class DiscordAuth
      *
      * return array[mixed] The users details.
      */
-    function get_user_details()
+    public function get_user_details()
     {
         if ($this->check_auth() && isset($_SESSION['access_token'])) 
             return $this->provider->getResourceOwner($_SESSION['access_token'])->toArray();
@@ -263,7 +264,7 @@ class DiscordAuth
      *
      * return array[string] Login status
      */
-    function get_auth()
+    public function get_auth()
     {
         if (!$this->check_auth() || !isset($_SESSION['access_token'])) {
             return array(
@@ -279,16 +280,28 @@ class DiscordAuth
         }
     }
     
+    
+    public function logged_in()
+    {
+        return $this->get_auth()["login"];
+    }
+    
     /**
      * Returns the url a user needs to login via Discord
      *
      * return $string Login url
      */
-    function get_auth_url()
+    public function get_auth_url()
     {
         return $this->provider->getAuthorizationUrl(array(
             'scope' => $this->scopes
         ));
+    }
+    
+    
+    public function get_access_token($code)
+    {
+        return $this->provider->getAccessToken('authorization_code', ['code' => $code]); 
     }
 }
 ?>

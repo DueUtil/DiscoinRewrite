@@ -23,7 +23,7 @@ if (!isset($_SESSION['access_token']))
 {
     if (isset($_GET['code']))
     {
-        $token = $discord_auth->provider->getAccessToken('authorization_code', ['code' => $_GET['code'], ]);
+        $token = $discord_auth->get_access_token($_GET['code']);
         $_SESSION['access_token'] = $token;
     }
     else if (!isset($_GET['error']))
@@ -42,5 +42,12 @@ if (isset($_SESSION['access_token']))
         unauthorized();
     }
 }
+
+function logout()
+{
+    session_destroy();
+}
+
+return $discord_auth;
 
 ?>

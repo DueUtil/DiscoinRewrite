@@ -28,19 +28,31 @@ function startsWith($haystack, $needle)
 }
 
 
+function requires_auth($page)
+{
+    $request = $page;
+    return require_once __DIR__."/discordauth.php";
+}
+
+
 function endsWith($haystack, $needle)
 {
     $length = strlen($needle);
     if ($length == 0) {
         return true;
     }
-
     return (substr($haystack, -$length) === $needle);
 }
 
 
+function str_contains($haystack, $needle)
+{
+    return strpos($haystack, $needle) !== false;
+}
 
-function strip($sting, $character=array("\r", "\n"))
+
+
+function strip($sting, $character=array("\r", "\n", " "))
 {
     return str_replace($character, '', $sting);
 }
@@ -64,7 +76,7 @@ function send_json($data, $status=200)
 
 function send_json_error($message, $status=400)
 {
-    send_json(["error"=>$message, $status]);
+    send_json(["status" => "error", "reason" => $message, $status]);
 }
 
 

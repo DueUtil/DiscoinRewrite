@@ -9,12 +9,12 @@ require_once __DIR__."/discoin.php";
 require_once __DIR__."/bots.php";
 
 
-if (!$discord_auth->get_auth()["login"]) {
+if (!$discord_auth->logged_in()) {
     unauthorized();
 }
 
 $user_info = $discord_auth->get_user_details();
-if (!\Discoin\Util\is_owner($user_info["id"])) {
+if (!\Discoin\is_owner($user_info["id"])) {
       \MacDue\Util\unauthorized();
 }
 
