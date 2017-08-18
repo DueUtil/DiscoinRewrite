@@ -1,6 +1,6 @@
 # Discoin Rewrite
 
-![Discoin](http://i.imgur.com/OmUsKyu.png)
+![Discoin](http://i.imgur.com/OmUsKyu.png | width=100)
 
 A Discoin rewrite in PHP and MongoDB meant to be easiser to use and more robust.
 
