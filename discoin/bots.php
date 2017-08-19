@@ -52,6 +52,8 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
         $this->currency_code = $currency_code;
         $this->to_discoin = $to_discoin;
         $this->from_discoin = $from_discoin;
+        $this->limit_user = $limit_user;
+        $this->limit_global = $limit_global;
         $this->auth_key = $this->generate_api_key();
         $this->save();
     }
