@@ -11,6 +11,8 @@ require_once __DIR__."/../scripts/util.php";
 
 use function \MacDue\Util\unauthorized as unauthorized;
 use function \MacDue\Util\strip as strip;
+use function \Discoin\Bots\get_bot as get_bot;
+
 
 if (!$discord_auth->logged_in())
     unauthorized();
@@ -28,6 +30,8 @@ if (!isset($_POST["owner"], $_POST["botName"], $_POST["currencyCode"],
 } 
 else 
 {
+    header("Content-Type: text/plain");
+
     $owner = strip($_POST["owner"]);
     $bot_name = strip($_POST["botName"]);
     $currency_code = strtoupper(strip($_POST["currencyCode"]));
@@ -35,7 +39,7 @@ else
     $from_discoin = floatval($_POST["fromDiscoin"]);
     $limit_user = floatval($_POST["limitUser"]);
     $limit_global = floatval($_POST["limitGlobal"]);
-    
+
     if (!(is_numeric($owner)
           && is_string($bot_name)
           && is_string($currency_code)
@@ -51,19 +55,27 @@ else
     }
     else 
     {
-        header("Content-Type: text/plain");
-        $existing_bot = \Discoin\Bots\get_bot(["_id" => "$owner/$bot_name"]);
+        $bot_id = strtolower("$owner/$bot_name");
+        $existing_bot = get_bot(["_id" => $bot_id]);
+        // If there is no existing one
         if (is_null($existing_bot))
         {
-            // Add bot if there is no existing one
-            $bot = \Discoin\Bots\add_bot($owner,
-                                         $bot_name,
-                                         $currency_code,
-                                         $to_discoin,
-                                         $from_discoin,
-                                         $limit_user,
-                                         $limit_global);
-            echo $bot->auth_key;
+            // If there is no bot with that currency code
+            if (is_null(get_bot(["currency_code" => $currency_code])))
+            {
+                $bot = \Discoin\Bots\add_bot($owner,
+                                             $bot_name,
+                                             $currency_code,
+                                             $to_discoin,
+                                             $from_discoin,
+                                             $limit_user,
+                                             $limit_global);
+                echo $bot->auth_key;
+            }
+            else
+            {
+                echo "The currency code $currency_code is already in use!";
+            }
         }
         else
         {

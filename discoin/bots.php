@@ -99,9 +99,8 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
     
     public function save()
     {
-        \MacDue\DB\upsert("bots", "$this->owner/$this->name", $this);
+        \MacDue\DB\upsert("bots", strtolower("$this->owner/$this->name"), $this);
     }
-    
 }
 
 

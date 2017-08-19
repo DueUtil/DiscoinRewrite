@@ -17,6 +17,7 @@ abstract class Object
   
     public static function load($std_obj)
     {
+        unset($std_obj->_id);
         foreach ($std_obj as $attr_name => $value)
             if (is_object($value))
                 $std_obj->$attr_name = (array) $value;

@@ -44,9 +44,9 @@ function get_collection_data($collection, $query_array=array()) {
 function upsert($collection, $_id, $data, $set_mode='$set') {
     global $manager;
     $bulk = new \MongoDB\Driver\BulkWrite;
-    $bulk->update(['_id' => $_id], ['$set' => $data], ['upsert' => true]);
+    $bulk->update(['_id' => $_id], ['$set' => $data], ['upsert' => True]);
     $write_concern = new \MongoDB\Driver\WriteConcern(\MongoDB\Driver\WriteConcern::MAJORITY, 1000);
-    $result = $manager->executeBulkWrite(DATABASE.".$collection", $bulk, $write_concern);
+    return $manager->executeBulkWrite(DATABASE.".$collection", $bulk, $write_concern);
 }
 
 
@@ -59,11 +59,11 @@ function upsert($collection, $_id, $data, $set_mode='$set') {
 *
 * @author MacDue
 */
-function delete_document($_id, $collection, $limit=1) {
+function delete_document($collection, $_id, $limit=1) {
     global $manager;
     $bulk = new \MongoDB\Driver\BulkWrite;
     $bulk->delete(['_id' => $_id], ['limit' => $limit]);
-    $result = $manager->executeBulkWrite(DATABASE.".$collection", $bulk);
+    return $manager->executeBulkWrite(DATABASE.".$collection", $bulk);
 }
 
 ?>

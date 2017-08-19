@@ -53,7 +53,7 @@ if ($get_request)
     {
         // Rates
         Discoin\Bots\show_rates();
-    } 
+    }
     else if ($request === "/transactions")
     {
         // Get get the bot using the auth token.
@@ -61,6 +61,16 @@ if ($get_request)
         $bot = requires_discoin_auth();
         send_json($bot->get_transactions());
     } 
+    else if (startsWith($request, "/transaction/"))
+    {
+        // Get the full details of a transaction (for devs)
+        $receipt = explode("/", $request)[2];
+        $transaction = \Discoin\Transactions\get_transaction($receipt);
+        if (!is_null($transaction))
+            send_json($transaction->full_details());
+        else
+            echo "Transaction not found!";
+    }
     else if (startsWith($request, "/verify"))
     {
         // User verification

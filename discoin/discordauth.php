@@ -12,6 +12,9 @@ require_once __DIR__."/discoin.php";
 require_once __DIR__."/../scripts/discordstuff.php";
 require_once __DIR__."/../scripts/util.php";
 
+if (!isset($request))
+    die("No request page set!");
+
 session_name('discoin_auth');
 $discord_auth = new \Discord\DiscordAuth(['clientId' => CLIENT_ID, 
                                           'clientSecret' => CLIENT_SECRET,

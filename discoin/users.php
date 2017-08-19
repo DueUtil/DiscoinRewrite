@@ -133,9 +133,8 @@ Hello! Here's your transaction record.
 * Request Time: When you started the exchange.
 * Reception Time: When the target bot processed your exchange.
 * From/To: Currency codes.
-* Amount: In Discoin.
-      
-|| Receipt ID                             || Request Time        || Process Time        || From ||  To  || Amount
+* Convertions: The transaction value conversions
+|| Receipt ID                             || Request Time        || Process Time        || Convertions
 
 EOT;
         foreach ($this->get_transactions() as $transaction)

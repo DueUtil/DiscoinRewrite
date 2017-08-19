@@ -70,7 +70,7 @@ function requires_discoin_auth()
 {
     $headers = apache_request_headers();
     $auth_key = \MacDue\Util\get($headers["Authorization"]);
-    if (!is_null($auth_key))
+    if (!is_null($auth_key) && is_string($auth_key))
     {
         $bot = \Discoin\Bots\get_bot(["auth_key" => $auth_key]);
         if (!is_null($bot))

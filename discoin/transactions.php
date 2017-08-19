@@ -36,9 +36,11 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
     public $timestamp;
     public $source;
     public $target;
-    public $amount;
     public $receipt;
     public $type;
+    public $amount_source;
+    public $amount_discoin;
+    public $amount_target;
     public $processed = False;
     public $process_time = 0;
     
@@ -60,7 +62,6 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         
         if (is_null($target_bot))
             send_json_error("invalid destination currency");
-        
         $this->amount_source = $amount;
         // These are also rounded to 2dp.
         $this->amount_discoin = round($amount * $source_bot->to_discoin, 2);
@@ -88,6 +89,11 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         
         // Send a nice little webhook!
         $this->new_transaction_webhook();
+    }
+    
+    private function get_receipt()
+    {
+        return sha1(uniqid(time().$this->user, True));
     }
     
     private static function decline($reason, $limits=null)
@@ -124,14 +130,9 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
                                       $value="$this->amount_source $this->source => $this->amount_target $this->target", 
                                       $inline=True);
         $transaction_embed->add_field($name="Receipt", $value=$this->receipt);
-        $transaction_embed->set_footer($text="Sent ".format_timestamp($this->timestamp));
+        $transaction_embed->set_footer($text="Sent on ".format_timestamp($this->timestamp));
         
         \Discord\send_webhook(TRANSACTION_WEBHOOK, ["embeds" => [$transaction_embed]]);
-    }
-    
-    private function get_receipt()
-    {
-        return sha1(uniqid(time().$this->user, True));
     }
     
     /*
@@ -179,14 +180,23 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         
         $processed = $this->processed ? format_timestamp($this->process_time) : "UNPROCESSED";
         // Simple text formatting.
-        $record_format = "||%s|| %s || %s || %s  || %s  || %.2f";
+        $record_format = "||%s|| %s || %s || %.2f %s => %.2f Discoin => %.2f %s";
         return sprintf($record_format, 
                        $this->receipt,
                        format_timestamp($this->timestamp), 
                        str_pad($processed, 19),
+                       $this->amount_source,
                        $this->source,
-                       $this->target,
-                       $this->amount_discoin);
+                       $this->amount_discoin,
+                       $this->amount_target,
+                       $this->target);
+    }
+
+    // Returns everything (for bot devs)
+    // (so is not like the normal json serialize)
+    public function full_details()
+    {
+        return get_object_vars($this);
     }
     
     public function save()
@@ -194,6 +204,15 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         \MacDue\DB\upsert("transactions", $this->receipt, $this);
     }
     
+}
+
+
+function get_transaction($receipt)
+{
+    $transaction_data = \MacDue\DB\get_collection_data("transactions", ["receipt" => $receipt]);
+    if (sizeof($transaction_data) == 1)
+        return Transaction::load($transaction_data[0]);
+    return null;
 }
 
 
