@@ -64,12 +64,13 @@ if ($get_request)
     else if (startsWith($request, "/transaction/"))
     {
         // Get the full details of a transaction (for devs)
+        requires_discoin_auth();
         $receipt = explode("/", $request)[2];
         $transaction = \Discoin\Transactions\get_transaction($receipt);
         if (!is_null($transaction))
             send_json($transaction->full_details());
         else
-            echo "Transaction not found!";
+            send_json_error("transaction not found", 404);
     }
     else if (startsWith($request, "/verify"))
     {

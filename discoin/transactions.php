@@ -153,9 +153,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
             else if (!is_numeric($transaction_info->amount)) 
                 Transaction::decline("amount NaN");
             $amount = floatval($transaction_info->amount);
-            
-            $transaction = new Transaction($user, $source_bot->currency_code, strtoupper($transaction_info->exchangeTo), $amount);
-            return $transaction;
+            return new Transaction($user, $source_bot->currency_code, strtoupper($transaction_info->exchangeTo), $amount);
         } 
         else
         {
