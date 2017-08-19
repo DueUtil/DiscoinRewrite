@@ -163,9 +163,9 @@ function add_user($discord_user)
     $user = get_user($discord_user["id"]);
     if (is_null($user))
     {
-        $burner_emails = file_get_contents(BURNER_EMAILS);
+        $burner_emails = explode("\n", file_get_contents(BURNER_EMAILS));
         $email_domain = \MacDue\Util\strip(explode("@", $discord_user["email"])[1]);
-        if (\MacDue\Util\str_contains($burner_emails, $email_domain)) 
+        if (in_array($email_domain, $burner_emails)) 
         {
             echo "Nope! Please use a real email to verify with Discoin!";
             return False;
