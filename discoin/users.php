@@ -27,7 +27,8 @@ class User extends \Discoin\Object
 {
     public $id;
     public $daily_exchanges = array();
-    private $first_transaction_time = -1;
+    // Temporarily public to avoid serialization issues.
+    public $first_transaction_time = -1;
     
       
     public function __construct($id)
@@ -90,13 +91,9 @@ class User extends \Discoin\Object
     {
         $target_currency = $transaction->target;
         if (!isset($this->daily_exchanges[$target_currency]))
-        {
             $this->daily_exchanges[$target_currency] = $transaction->amount_discoin;
-        }
         else
-        {
             $this->daily_exchanges[$target_currency] += $transaction->amount_discoin;
-        }
         $this->save();
     }
     

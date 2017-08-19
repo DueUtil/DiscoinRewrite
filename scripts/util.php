@@ -72,7 +72,9 @@ function requires_discoin_auth()
     $auth_key = \MacDue\Util\get($headers["Authorization"]);
     if (!is_null($auth_key))
     {
-        return \Discoin\Bots\get_bot(["auth_key" => $auth_key]);
+        $bot = \Discoin\Bots\get_bot(["auth_key" => $auth_key]);
+        if (!is_null($bot))
+            return $bot;
     }
     send_json_error("unauthorized", 401);
 }
