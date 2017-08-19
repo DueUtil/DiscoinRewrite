@@ -73,7 +73,9 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         $this->amount_source = $amount;
         // These are also rounded to 2dp.
         $this->amount_discoin = round($amount * $source_bot->to_discoin, 2);
-        $this->amount_target = round($this->amount_discoin * $target_bot->from_discoin, 2);
+        // Fix so the rates work as expected.
+        // to_discoin also acts as how much a discoin is worth to a bot.
+        $this->amount_target = round($this->amount_discoin / $target_bot->to_discoin * $target_bot->from_discoin, 2);
         
         if ($user->exceeds_daily_limit($source_bot, $target_bot, $this->amount_discoin))
         {
