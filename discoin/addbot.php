@@ -10,8 +10,7 @@ require_once __DIR__."/discordauth.php";
 require_once __DIR__."/../scripts/util.php";
 
 use function \MacDue\Util\unauthorized as unauthorized;
-
-header("Content-Type: text/plain");
+use function \MacDue\Util\strip as strip;
 
 if (!$discord_auth->logged_in())
     unauthorized();
@@ -24,13 +23,14 @@ if (!isset($_POST["owner"], $_POST["botName"], $_POST["currencyCode"],
            $_POST["toDiscoin"], $_POST["fromDiscoin"])) 
 {
     // Add bot form
+    header("Content-Type: text/html");
     echo file_get_contents("addbot.html");
 } 
 else 
 {
-    $owner = $_POST["owner"];
-    $bot_name = $_POST["botName"];
-    $currency_code = strtoupper($_POST["currencyCode"]);
+    $owner = strip($_POST["owner"]);
+    $bot_name = strip($_POST["botName"]);
+    $currency_code = strtoupper(strip($_POST["currencyCode"]));
     $to_discoin = floatval($_POST["toDiscoin"]);
     $from_discoin = floatval($_POST["fromDiscoin"]);
     $limit_user = floatval($_POST["limitUser"]);
@@ -51,6 +51,7 @@ else
     }
     else 
     {
+        header("Content-Type: text/plain");
         $existing_bot = \Discoin\Bots\get_bot(["_id" => "$owner/$bot_name"]);
         if (is_null($existing_bot))
         {
