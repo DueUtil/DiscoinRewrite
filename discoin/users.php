@@ -23,7 +23,7 @@ define("BURNER_EMAILS", "https://raw.githubusercontent.com/wesbos/burner-email-p
  * 
  * @author MacDue
  */
-class User extends \Discoin\Object
+class User extends \Discoin\Object implements \Discoin\Transactions\iHasTransactions
 {
     public $id;
     public $daily_exchanges = array();
@@ -85,7 +85,9 @@ class User extends \Discoin\Object
     /*
      * Log a transction
      * 
-     * @param \Discoin\Transactions\Transaction $from The source bot
+     * It will update the users current limits for daily exchanges
+     * 
+     * @param \Discoin\Transactions\Transaction $transaction A transaction
      */
     public function log_transaction($transaction)
     {

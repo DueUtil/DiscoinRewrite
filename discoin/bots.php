@@ -25,7 +25,7 @@ use \Discoin\Transactions\Transaction as Transaction;
  * 
  * @author MacDue
  */
-class Bot extends \Discoin\Object 
+class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransactions
 {  
     public $owner;
     public $currency_code;
@@ -77,6 +77,12 @@ class Bot extends \Discoin\Object
             $transactions[] = $transaction;
         }
         return $transactions;
+    }
+    
+    public function log_transaction($transaction)
+    {
+        $this->exchanged_today += $transaction->amount_discoin;
+        $this->save();
     }
     
     public function __toString()

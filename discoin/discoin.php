@@ -12,7 +12,7 @@ namespace Discoin;
  * 
  * @author MacDue
  */
-class Object
+abstract class Object
 {
   
     public static function load($std_obj)
@@ -26,6 +26,8 @@ class Object
         $temp = preg_replace("@^O:8:\"stdClass\":@","O:".strlen($class_name).":\"$class_name\":",$temp);
         return unserialize($temp);
     }
+    
+    abstract public function save();
     
 }
 

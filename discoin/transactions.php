@@ -74,8 +74,10 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
             Transaction::decline("total limit exceeded", $target_bot->limit_global);
                 
         // If we get here we're okay!
+        
         $this->timestamp = time();
         $this->receipt = $this->get_receipt();
+        $target_bot->log_transaction($this);
         $user->log_transaction($this);
         $this->approve($target_bot->limit_user - $user->daily_exchanges[$target]);
         $this->save();
@@ -181,6 +183,14 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         \MacDue\DB\upsert("transactions", $this->receipt, $this);
     }
     
+}
+
+
+// Try out a php interface for fun
+// (don't really need this but I wanted to test it out)
+interface iHasTransactions
+{
+    public function log_transaction($transaction);
 }
 
 ?>
