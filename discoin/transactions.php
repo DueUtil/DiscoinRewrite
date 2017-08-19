@@ -55,6 +55,8 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         $this->target = $target;
         $this->type = $type;
         
+        // Round to 2dp
+        $amount = round($amount, 2);
         if ($amount <= 0)
         {
             send_json_error("invalid amount");
@@ -69,8 +71,9 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         }
         
         $this->amount_source = $amount;
-        $this->amount_discoin = $amount * $source_bot->to_discoin;
-        $this->amount_target = $this->amount_discoin * $target_bot->from_discoin;
+        // These are also rounded to 2dp.
+        $this->amount_discoin = round($amount * $source_bot->to_discoin, 2);
+        $this->amount_target = round($this->amount_discoin * $target_bot->from_discoin, 2);
         
         if ($user->exceeds_daily_limit($source_bot, $target_bot, $this->amount_discoin))
         {
