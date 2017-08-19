@@ -69,8 +69,8 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         }
         
         $this->amount_source = $amount;
-        $this->amount_target = $amount * $target_bot->from_discoin;
         $this->amount_discoin = $amount * $source_bot->to_discoin;
+        $this->amount_target = $this->amount_discoin * $target_bot->from_discoin;
         
         if ($user->exceeds_daily_limit($source_bot, $target_bot, $this->amount_discoin))
         {
