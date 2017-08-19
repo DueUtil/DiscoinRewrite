@@ -132,9 +132,9 @@ Hello! Here's your transaction record.
 --- LEGEND ---
 * Request Time: When you started the exchange.
 * Reception Time: When the target bot processed your exchange.
-* From/To: Currency codes.
-* Convertions: The transaction value conversions
-|| Receipt ID                             || Request Time        || Process Time        || Convertions
+* Exchange: A simple description of the exchange and how the amounts changed.
+
+|| Receipt ID                             || Request Time        || Process Time        || Exchange
 
 EOT;
         foreach ($this->get_transactions() as $transaction)
