@@ -68,13 +68,17 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         // to_discoin also acts as how much a discoin is worth to a bot.
         $this->amount_target = round($this->amount_discoin / $target_bot->to_discoin * $target_bot->from_discoin, 2);
         
-        if ($user->exceeds_daily_limit($source_bot, $target_bot, $this->amount_discoin))
-            Transaction::decline("per-user limit exceeded", $target_bot->limit_user);
-        else if ($user->exceeds_global_limit($source_bot, $target_bot, $this->amount_discoin)) 
-            Transaction::decline("total limit exceeded", $target_bot->limit_global);
+        // Limit checks
+        if ($user->exceeds_user_daily_limit($target_bot, $this->amount_discoin))
+            // Daily limit
+            Transaction::decline("per-user limit exceeded",
+                                 ["limit" => $target_bot->limit_user,
+                                  "limit_now"=>$user->current_limit_for_bot($target_bot)]);
+        else if ($user->exceeds_bot_global_limit($target_bot, $this->amount_discoin))
+            // Global limit
+            Transaction::decline("total limit exceeded", ["limit" => $target_bot->limit_global]);
                 
         // If we get here we're okay!
-        
         $this->timestamp = time();
         $this->receipt = $this->get_receipt();
         $target_bot->log_transaction($this);
@@ -86,12 +90,19 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         $this->new_transaction_webhook();
     }
     
-    private static function decline($reason, $limit=null)
+    private static function decline($reason, $limits=null)
     {
         http_response_code(400);
         $declined = ["status" => "declined", "reason" => $reason];
-        if (!is_null($limit))
-            $declined["limit"] = $limit;
+        // Limits
+        if (!is_null($limits))
+        {
+            // Must define a limit
+            $declined["limit"] = $limits["limit"];
+            // Secondary limit now
+            if (array_key_exists("limit_now", $limits))
+                $declined["limitNow"] =  $limits["limit_now"];
+        }
         send_json($declined, 400);
         die();
     }

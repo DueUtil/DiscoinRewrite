@@ -11,6 +11,7 @@ require_once __DIR__."/discoin.php";
 require_once __DIR__."/../scripts/dbconn.php";
 require_once __DIR__."/../scripts/util.php";
 
+use function \MacDue\Util\get as get;
 use \Discoin\Transactions\Transaction as Transaction;
 
 define("BURNER_EMAILS", "https://raw.githubusercontent.com/wesbos/burner-email-providers/master/emails.txt");
@@ -37,49 +38,54 @@ class User extends \Discoin\Object implements \Discoin\Transactions\iHasTransact
         $this->save();
     }
     
-    private function exceeds_limit($amount_discoin, $exchanged, $limit)
-    {
-        return $exchanged + $amount_discoin > $limit;
-    }
-    
     /*
      * If a amount exceeds a daily user limit for a bot
      * 
-     * @param \Discoin\Bots\Bot $from The source bot
-     * @param \Discoin\Bots\Bot $to The target bot
+     * @param \Discoin\Bots\Bot $bot The target bot
      * @parm float $amount_discoin The transaction amount in Discoin
      * 
      * return boolean If it exceeds the limit
      */
-    public function exceeds_daily_limit($from, $to, $amount_discoin)
+    public function exceeds_user_daily_limit($bot, $amount_discoin)
     {
         if (time() - $this->first_transaction_time > TRANSACTION_LIMIT_RESET)
         {
+            // Reset user limits
             $this->daily_exchanges = array();
             $this->first_transaction_time = time();
             $this->save();
         }
-        return $this->exceeds_limit($amount_discoin, \MacDue\Util\get($daily_exchanges[$to->currency_code], 0), $to->limit_user);
+        return $amount_discoin > $this->current_limit_for_bot($bot);
     }
   
     /*
      * If a amount exceeds a bot global daily limit
      * 
-     * @param \Discoin\Bots\Bot $from The source bot
-     * @param \Discoin\Bots\Bot $to The target bot
+     * @param \Discoin\Bots\Bot $bot The target bot
      * @parm float $amount_discoin The transaction amount in Discoin
      * 
      * return boolean If it exceeds the limit
      */
-    public function exceeds_global_limit($from, $to, $amount_discoin)
+    public function exceeds_bot_global_limit($bot, $amount_discoin)
     {
-        if (time() - $to->first_transaction_time > TRANSACTION_LIMIT_RESET)
+        if (time() - $bot->first_transaction_time > TRANSACTION_LIMIT_RESET)
         {
-            $to->exchanged_today = 0;
-            $to->first_transaction_time = time();
-            $to->save();
+            // Reset bot limits
+            $bot->exchanged_today = 0;
+            $bot->first_transaction_time = time();
+            $bot->save();
         }
-        return $this->exceeds_limit($amount_discoin, $to->exchanged_today, $to->limit_global);
+        return $amount_discoin > $this->current_limit_for_bot($bot, $global=True);
+    }
+
+    public function current_limit_for_bot($bot, $global=False)
+    {
+        // Get with default 0
+        $exchanges_to_bot = get($this->daily_exchanges[$bot->currency_code], 0);
+        if (!$global)
+            return $bot->limit_user - $exchanges_to_bot;
+        else
+            return $bot->limit_global - $exchanges_to_bot;
     }
     
     /*
@@ -91,11 +97,9 @@ class User extends \Discoin\Object implements \Discoin\Transactions\iHasTransact
      */
     public function log_transaction($transaction)
     {
-        $target_currency = $transaction->target;
-        if (!isset($this->daily_exchanges[$target_currency]))
-            $this->daily_exchanges[$target_currency] = $transaction->amount_discoin;
-        else
-            $this->daily_exchanges[$target_currency] += $transaction->amount_discoin;
+        // Get with default 0
+        $exchanges_to_bot = get($this->daily_exchanges[$transaction->target], 0);
+        $this->daily_exchanges[$transaction->target] = $exchanges_to_bot + $transaction->amount_discoin;
         $this->save();
     }
     
@@ -115,7 +119,6 @@ class User extends \Discoin\Object implements \Discoin\Transactions\iHasTransact
         }
         return $transactions;
     }
-    
     
     /*
      * Output a crappy text log of the users transactions

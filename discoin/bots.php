@@ -32,14 +32,21 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
     public $to_discoin;
     public $from_discoin;
     public $auth_key;
-    public $limit_user = 2500;
-    public $limit_global = 1000000;
+    public $limit_user;
+    public $limit_global;
     public $exchanged_today = 0;
     public $first_transaction_time = -1;
     
     
-    function __construct($owner, $name, $currency_code, $to_discoin, $from_discoin)
-    {
+    // Kinda a long constructor
+    function __construct($owner,
+                         $name,
+                         $currency_code,
+                         $to_discoin,
+                         $from_discoin,
+                         $limit_user=2500,
+                         $limit_global=1000000
+    ) {
         $this->owner = $owner;
         $this->name = $name;
         $this->currency_code = $currency_code;
@@ -84,10 +91,10 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
         $this->exchanged_today += $transaction->amount_discoin;
         $this->save();
     }
-    
+        
     public function __toString()
     {
-        return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin";
+        return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin $this->currency_code";
     }
     
     public function save()
