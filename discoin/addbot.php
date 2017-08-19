@@ -39,8 +39,9 @@ else
         // You've broken the rules (I cba giving more details)
         http_response_code(400);
         echo "BAD REQUEST";
-    } else {
-        http_response_code(200);
+    } 
+    else 
+    {
         $existing_bot = \Discoin\Bots\get_bot(["_id" => "$owner/$bot_name"]);
         if (is_null($existing_bot))
         {
