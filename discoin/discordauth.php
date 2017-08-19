@@ -32,17 +32,17 @@ if (!isset($_SESSION['access_token']))
         header('Location: ' . $discord_auth->get_auth_url());
         die();
     }
-}
-// Login worked! (check with $discord_auth->logged_in())
-
-
-if (isset($_SESSION['access_token']))
+} 
+else 
 {
-    if (!$discord_auth->check_auth())
+    // Just in case we lose the login.
+    if (!$discord_auth->logged_in())
     {
-        unauthorized();
+        logout();
+        \MacDue\Util\unauthorized();
     }
 }
+
 
 function logout()
 {

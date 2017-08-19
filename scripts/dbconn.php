@@ -7,6 +7,8 @@
 
 namespace MacDue\DB;
 
+// discoin.php included only for mongo config
+// (change if used in other project)
 require_once __DIR__."/../discoin/discoin.php";
 require_once __DIR__."/util.php";
 

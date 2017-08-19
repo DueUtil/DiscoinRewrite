@@ -110,9 +110,7 @@ function get_bots()
 {
     $bots = \MacDue\DB\get_collection_data("bots");
     foreach ($bots as $id => $bot_data)
-    {
         $bots[$id] = Bot::load($bot_data);
-    }
     return $bots;
 }
 
