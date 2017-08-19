@@ -115,7 +115,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         $transaction_embed = new \Discord\Embed($title=":new: New transaction!", $colour=7506394);
         $transaction_embed->add_field($name="User", $value=$this->user, $inline=True);
         $transaction_embed->add_field($name="Exchange", 
-                                      $value="$this->ammount_source $this->source => $this->amount_target $this->target", 
+                                      $value="$this->amount_source $this->source => $this->amount_target $this->target", 
                                       $inline=True);
         $transaction_embed->add_field($name="Receipt", $value=$this->receipt);
         $transaction_embed->set_footer($text="Sent ".format_timestamp($this->timestamp));
