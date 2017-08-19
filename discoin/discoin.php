@@ -7,9 +7,6 @@
  
 namespace Discoin;
 
-define("TRANSACTION_LIMIT_RESET", 86400);
-
-
 /*
  * Base object for other Discoin objects
  * 
@@ -32,11 +29,6 @@ class Object
     
 }
 
-function get_config()
-{
-    return json_decode(file_get_contents(__DIR__.'/config.json'));
-}
-
 
 function is_owner($user)
 {
@@ -47,5 +39,40 @@ function is_owner($user)
             return True;
     return False;
 }
+
+
+function get_config()
+{
+    return json_decode(file_get_contents(__DIR__.'/config.json'));
+}
+
+
+function load_config()
+{
+    $config = get_config();
+
+    // General
+    define("TRANSACTION_LIMIT_RESET", $config->transactionLimitReset);
+    define("TRANSACTION_WEBHOOK", $config->discord->transactionWebhook);
+    
+    // Discoin
+    $discord_config = $config->discord;
+    define("CLIENT_ID", $discord_config->clientId);
+    define("CLIENT_SECRET", $discord_config->clientSecret);
+    define("PROTCOL", $config->protcol);
+    
+    // Mongo
+    $mongo_config = \Discoin\get_config()->mongo;
+    define("MONGO_USER", $mongo_config->user);
+    define("MONGO_PASS", $mongo_config->password);
+    define("MONGO_HOST", $mongo_config->host);
+    define("DATABASE", $mongo_config->database);
+    
+    define("CONFIG_LOADED", True);
+}
+
+
+if (!defined("CONFIG_LOADED"))
+    load_config();
 
 ?>

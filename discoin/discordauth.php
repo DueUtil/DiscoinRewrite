@@ -6,16 +6,16 @@
  * @author MacDue
  */
  
-namespace Discord\Auth;
+namespace Discoin\Auth;
 
-require_once __DIR__."/discordstuff.php";
-require_once __DIR__."/../auth.php";
+require_once __DIR__."/discoin.php";
+require_once __DIR__."/../scripts/discordstuff.php";
 require_once __DIR__."/../scripts/util.php";
 
-
 session_name('discoin_auth');
-$discord_auth = new \Discord\DiscordAuth(['clientId' => CLIENT_ID, 'clientSecret' => CLIENT_SECRET,
-                                          'redirectUri' => "http://$_SERVER[HTTP_HOST]$request"]);
+$discord_auth = new \Discord\DiscordAuth(['clientId' => CLIENT_ID, 
+                                          'clientSecret' => CLIENT_SECRET,
+                                          'redirectUri' => PROTCOL."$_SERVER[HTTP_HOST]$request"]);
 session_start();
 
 

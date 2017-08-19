@@ -7,9 +7,9 @@
 
 namespace Discoin\Users;
 
+require_once __DIR__."/discoin.php";
 require_once __DIR__."/../scripts/dbconn.php";
 require_once __DIR__."/../scripts/util.php";
-require_once __DIR__."/discoin.php";
 
 use \Discoin\Transactions\Transaction as Transaction;
 

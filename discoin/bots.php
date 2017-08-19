@@ -7,10 +7,10 @@
  
 namespace Discoin\Bots;
 
-require_once __DIR__."/../scripts/dbconn.php";
-require_once __DIR__."/../scripts/util.php";
 require_once __DIR__."/discoin.php";
 require_once __DIR__."/transactions.php";
+require_once __DIR__."/../scripts/dbconn.php";
+require_once __DIR__."/../scripts/util.php";
 
 use \Discoin\Transactions\Transaction as Transaction;
 
@@ -50,15 +50,9 @@ class Bot extends \Discoin\Object
     }
     
     // Generates the API key
-    private function generate_api_key() {
-        return hash('sha256',"DisnodeTeamSucks".time().$this->owner);
-    }
-    
-    public function update_rates($to_discoin, $from_discoin)
+    private function generate_api_key()
     {
-        $this->to_discoin = $to_discoin;
-        $this->from_discoin = $from_discoin;
-        $this->save();
+        return hash('sha256',"DisnodeTeamSucks".time().$this->owner);
     }
     
     /*
@@ -92,7 +86,7 @@ class Bot extends \Discoin\Object
     
     public function save()
     {
-        \MacDue\DB\upsert("bots", $this->owner.'/'.$this->name, $this);
+        \MacDue\DB\upsert("bots", "$this->owner/$this->name", $this);
     }
     
 }
@@ -102,13 +96,11 @@ function add_bot($owner, $name, $currency_code, $to_discoin, $from_discoin)
 {
     global $discord_auth;
     
-    require_once("../scripts/discordauth.php");
+    require_once __DIR__."/discordauth.php";
     $user_info = $discord_auth->get_user_details();
     
     if (!\Discoin\is_owner($user_info["id"]))
-    {
         return False;
-    }
     
     return new Bot($owner, $name, $currency_code, $to_discoin, $from_discoin);
 }
@@ -138,9 +130,7 @@ function show_rates()
 {
     $rates = "Current exchange rates for Discoin follows:\n\n";
     foreach (get_bots() as $bot) 
-    {
         $rates .= "$bot\n";
-    }
     $rates .= "\n";
     $rates .= "Note that certain transaction limits may exist. Details will be displayed when a transaction is approved.";
     echo $rates;

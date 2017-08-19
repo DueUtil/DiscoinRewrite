@@ -61,7 +61,7 @@ function strip($sting, $character=array("\r", "\n", " "))
 function requires_discord_auth($page)
 {
     $request = $page;
-    return require_once __DIR__."/discordauth.php";
+    return require_once __DIR__."/../discoin/discordauth.php";
 }
 
 /* VVV General util stuff for logins and JSON VVV */

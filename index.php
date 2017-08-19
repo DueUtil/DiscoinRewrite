@@ -16,10 +16,11 @@
 * 
 */
 
-require_once("scripts/util.php");
-require_once("discoin/transactions.php");
-require_once("discoin/bots.php");
-require_once("discoin/users.php");
+require_once "discoin/discoin.php";
+require_once "discoin/transactions.php";
+require_once "discoin/bots.php";
+require_once "discoin/users.php";
+require_once "scripts/util.php";
 
 // Common functions
 use function \MacDue\Util\startsWith as startsWith;
@@ -27,6 +28,8 @@ use function \MacDue\Util\requires_discord_auth as requires_discord_auth;
 use function \MacDue\Util\requires_discoin_auth as requires_discoin_auth;
 use function \MacDue\Util\send_json as send_json;
 use function \MacDue\Util\send_json_error as send_json_error;
+
+$config = Discoin\get_config();
 
 // Get request type and page
 $request = rtrim($_SERVER['REQUEST_URI'], "/");
@@ -44,7 +47,7 @@ if ($get_request)
     if ($request === "")
     { 
         // Welcome page
-        echo "Welcome to Discoin V2!";
+        echo $config->welcomeMessage;
     }
     else if ($request === "/rates")
     {
@@ -85,7 +88,8 @@ if ($get_request)
         // Unknown GET (the fuck are you guys doing?)
         send_json_error("invalid get $request");
     }  
-} else 
+} 
+else 
 {
     /*
      * Handle all POST requests.

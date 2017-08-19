@@ -1,0 +1,27 @@
+{
+    "owners": {
+        "MacDue":{
+            "user": "132315148487622656"
+        },
+        "austinhuang":{
+            "user": "155784937511976960"
+        },
+        "Fires":{
+            "user": "131182268021604352"
+        }
+    },
+    "welcomeMessage": "Welcome to Discoin V2!",
+    "mongoAuth": {
+        "user": "uuser",
+        "host": "127.0.0.1",
+        "password": "password"
+    },
+    "discord": {
+        "clientID": "9234829348294234",
+        "clientSecret": "MdhjdsfkDCbnhhSXCVXCDSFcj",
+        "transactionWebhook": "https://discordapp.com/api/webhooks/348178790863732737/dyushuHADHjdkjdihujHDKSAJDSK"
+    },
+    "transactionLimitReset": 86400,
+    "protcol": "http://"
+}
+

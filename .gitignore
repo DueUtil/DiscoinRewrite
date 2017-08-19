@@ -1,3 +1,4 @@
 vendor/
 auth.php
 composer.lock
+discoin/config.json

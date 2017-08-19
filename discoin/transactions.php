@@ -7,21 +7,16 @@
  
 namespace Discoin\Transactions;
 
-require_once __DIR__."/../scripts/dbconn.php";
-require_once __DIR__."/../scripts/util.php";
-require_once __DIR__."/../scripts/discordstuff.php";
 require_once __DIR__."/discoin.php";
 require_once __DIR__."/bots.php";
 require_once __DIR__."/users.php";
-
+require_once __DIR__."/../scripts/dbconn.php";
+require_once __DIR__."/../scripts/util.php";
+require_once __DIR__."/../scripts/discordstuff.php";
 
 use function \MacDue\Util\send_json as send_json;
 use function \MacDue\Util\send_json_error as send_json_error;
 use function \MacDue\Util\format_timestamp as format_timestamp;
-
-
-// A webhook for new transaction alerts.
-define("TRANSACTIONS_WEBHOOK", "https://discordapp.com/api/webhooks/348178790863732737/geIjoZrNTzqFrN4Xw2K89cQYgDScWqT3nVUO2y7C61QadJBmCQFVXWYf2ctcJX21LKqb");
 
 
 /*
@@ -58,17 +53,13 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         // Round to 2dp
         $amount = round($amount, 2);
         if ($amount <= 0)
-        {
             send_json_error("invalid amount");
-        }
         
         $source_bot = \Discoin\Bots\get_bot(["currency_code" => $source]);
         $target_bot = \Discoin\Bots\get_bot(["currency_code" => $target]);
         
         if (is_null($target_bot))
-        {
             send_json_error("invalid destination currency");
-        }
         
         $this->amount_source = $amount;
         // These are also rounded to 2dp.
@@ -78,12 +69,9 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         $this->amount_target = round($this->amount_discoin / $target_bot->to_discoin * $target_bot->from_discoin, 2);
         
         if ($user->exceeds_daily_limit($source_bot, $target_bot, $this->amount_discoin))
-        {
             Transaction::decline("per-user limit exceeded", $target_bot->limit_user);
-        } else if ($user->exceeds_global_limit($source_bot, $target_bot, $this->amount_discoin)) 
-        {
+        else if ($user->exceeds_global_limit($source_bot, $target_bot, $this->amount_discoin)) 
             Transaction::decline("total limit exceeded", $target_bot->limit_global);
-        }
                 
         // If we get here we're okay!
         $this->timestamp = time();
@@ -125,7 +113,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         $transaction_embed->add_field($name="Receipt", $value=$this->receipt);
         $transaction_embed->set_footer($text="Sent ".format_timestamp($this->timestamp));
         
-        \Discord\send_webhook(TRANSACTIONS_WEBHOOK, ["embeds" => [$transaction_embed]]);
+        \Discord\send_webhook(TRANSACTION_WEBHOOK, ["embeds" => [$transaction_embed]]);
     }
     
     private function get_receipt()
@@ -147,12 +135,9 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         {
             $user = \Discoin\Users\get_user($transaction_info->user);
             if (is_null($user))
-            {
                 Transaction::decline("verify required");
-            } else if (!is_numeric($transaction_info->amount)) 
-            {
+            else if (!is_numeric($transaction_info->amount)) 
                 Transaction::decline("amount NaN");
-            }
             $amount = floatval($transaction_info->amount);
             
             $transaction = new Transaction($user, $source_bot->currency_code, strtoupper($transaction_info->exchangeTo), $amount);
@@ -166,7 +151,8 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
     }
     
     // JSON for GET /transactions
-    public function jsonSerialize() {
+    public function jsonSerialize()
+    {
         
           return ["user" => $this->user,
                   "timestamp" => $this->timestamp,
@@ -175,16 +161,19 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
                   "receipt" => $this->receipt];
     }
     
-    public function __toString(){
+    public function __toString()
+    {
         
-        if ($this->processed)
-            $processed = format_timestamp($this->process_time);
-        else
-            $processed = "UNPROCESSED        ";
-        // Seg fault if you make a typo /r/lolphp
-        return "||$this->receipt|| "
-                .format_timestamp($this->timestamp)
-                ." || $processed || $this->source  || $this->target  || $this->amount_discoin";
+        $processed = $this->processed ? format_timestamp($this->process_time) : "UNPROCESSED";
+        // Simple text formatting.
+        $record_format = "||%s|| %s || %s || %s  || %s  || %.2f";
+        return sprintf($record_format, 
+                       $this->receipt,
+                       format_timestamp($this->timestamp), 
+                       str_pad($processed, 19),
+                       $this->source,
+                       $this->target,
+                       $this->amount_discoin);
     }
     
     public function save()

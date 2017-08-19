@@ -7,13 +7,11 @@
 
 namespace MacDue\DB;
 
-require_once __DIR__."/../auth.php";
+require_once __DIR__."/../discoin/discoin.php";
 require_once __DIR__."/util.php";
 
 // Connect to the database.
-$manager = new \MongoDB\Driver\Manager("mongodb://$user:$pwd@$host/admin?authMechanism=SCRAM-SHA-1");
-define("DATABASE", "discoin");
-
+$manager = new \MongoDB\Driver\Manager("mongodb://".MONGO_USER.":".MONGO_PASS."@".MONGO_HOST."/admin?authMechanism=SCRAM-SHA-1");
 
 
 /**
