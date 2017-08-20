@@ -64,7 +64,7 @@ if ($get_request) {
         $transaction = \Discoin\Transactions\get_transaction($receipt);
         if (!is_null($transaction)) {
             // Send the full dump of the transaction
-            send_json($transaction->full_details());
+            send_json($transaction->get_full_details());
         } else {
             send_json_error("transaction not found", 404);
         }

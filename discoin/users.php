@@ -107,12 +107,7 @@ class User extends \Discoin\Object implements \Discoin\Transactions\iHasTransact
      */
     public function get_transactions()
     {
-        $raw_transactions = \MacDue\DB\get_collection_data("transactions", ["user" => $this->id]);
-        $transactions = array();
-        foreach ($raw_transactions as $transaction_data) {
-            $transaction = Transaction::load($transaction_data);
-            $transactions[] = $transaction;
-        }
+        $transactions = \MacDue\DB\get_collection_data("transactions", ["user" => $this->id]);
         return $transactions;
     }
     
@@ -150,7 +145,7 @@ function get_user($id)
 {
     $user_data = \MacDue\DB\get_collection_data("users", ["id" => $id]);
     if (sizeof($user_data) == 1)
-        return User::load($user_data[0]);
+        return $user_data[0];
     // User not found
     return null;
 }

@@ -70,12 +70,12 @@ function requires_discoin_auth()
 {
     $headers = apache_request_headers();
     $auth_key = \MacDue\Util\get($headers["Authorization"]);
-    if (!is_null($auth_key) && is_string($auth_key))
-    {
+    if (!is_null($auth_key) && is_string($auth_key)) {
         $bot = \Discoin\Bots\get_bot(["auth_key" => $auth_key]);
-        if (!is_null($bot))
-            return $bot;
+        // If we found the bot they are authorized
+        if (!is_null($bot)) return $bot;
     }
+    // Die! They've not got valid auth!
     send_json_error("unauthorized", 401);
 }
 

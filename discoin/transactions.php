@@ -42,8 +42,8 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
     public $amount_target;
     public $processed = False;
     public $process_time = 0;
-    
-    
+
+
     function __construct($user, $source, $target, $amount, $type="normal")
     {
         $this->user = $user->id;
@@ -80,10 +80,10 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
             // Global limit
             Transaction::decline("total limit exceeded", ["limit" => $target_bot->limit_global]);
         }
-                
+
         // If we get here we're okay!
         $this->timestamp = time();
-        $this->receipt = $this->get_receipt();
+        $this->receipt = $this->generate_receipt();
         $target_bot->log_transaction($this);
         $user->log_transaction($this);
         $this->approve($target_bot->limit_user - $user->daily_exchanges[$target]);
@@ -92,12 +92,27 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         // Send a nice little webhook!
         $this->new_transaction_webhook();
     }
-    
-    private function get_receipt()
+
+    private function generate_receipt()
     {
         return sha1(uniqid(time().$this->user, True));
     }
-    
+
+    public function mark_as_processed()
+    {
+        $this->processed = True;
+        $this->process_time = time();
+        $this->save();
+    }
+
+    private function approve($limit_now)
+    {
+        send_json(["status" => "approved",
+                   "receipt" => $this->receipt,
+                   "limitNow" => $limit_now,
+                   "resultAmount" => $this->amount_target]);
+    }
+
     private static function decline($reason, $limits=null)
     {
         http_response_code(400);
@@ -112,14 +127,6 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         }
         send_json($declined, 400);
         die();
-    }
-    
-    private function approve($limit_now)
-    {
-        send_json(["status" => "approved",
-                   "receipt" => $this->receipt,
-                   "limitNow" => $limit_now,
-                   "resultAmount" => $this->amount_target]);
     }
     
     private function new_transaction_webhook()
@@ -148,7 +155,8 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
     {
         if (isset($transaction_info->user,
                   $transaction_info->amount,
-                  $transaction_info->exchangeTo)) {
+                  $transaction_info->exchangeTo)
+        ) {
             $user = \Discoin\Users\get_user($transaction_info->user);
             if (is_null($user)) {
                 // User does not exist
@@ -168,7 +176,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         }
         return null;
     }
-    
+
     // JSON for GET /transactions
     public function jsonSerialize()
     {
@@ -179,10 +187,9 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
                   "amount" => $this->amount_target,
                   "receipt" => $this->receipt];
     }
-    
+
     public function __toString()
     {
-        
         $processed = $this->processed ? format_timestamp($this->process_time) : "UNPROCESSED";
         // Simple text formatting.
         $record_format = "||%s|| %s || %s || %.2f %s => %.2f Discoin => %.2f %s";
@@ -199,11 +206,11 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
 
     // Returns everything (for bot devs)
     // (so is not like the normal json serialize)
-    public function full_details()
+    public function get_full_details()
     {
         return get_object_vars($this);
     }
-    
+
     public function save()
     {
         \MacDue\DB\upsert("transactions", $this->receipt, $this);
@@ -216,7 +223,7 @@ function get_transaction($receipt)
 {
     $transaction_data = \MacDue\DB\get_collection_data("transactions", ["receipt" => $receipt]);
     if (sizeof($transaction_data) == 1)
-        return Transaction::load($transaction_data[0]);
+        return $transaction_data[0];
     // Transaction not found
     return null;
 }

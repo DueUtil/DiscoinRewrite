@@ -26,7 +26,8 @@ if (!isset($_POST["owner"],
            $_POST["botName"],
            $_POST["currencyCode"],
            $_POST["toDiscoin"],
-           $_POST["fromDiscoin"])) {
+           $_POST["fromDiscoin"])
+) {
     // Form data not sent!
     // Show the form.
     header("Content-Type: text/html");
@@ -50,7 +51,8 @@ if (!isset($_POST["owner"],
           && $from_discoin > 0
           && $limit_user > 0
           && $limit_global > $limit_user
-          && $from_discoin <= $to_discoin)) {
+          && $from_discoin <= $to_discoin)
+    ) {
         // You've broken the rules (I cba giving more details)
         http_response_code(400);
         echo "BAD REQUEST";

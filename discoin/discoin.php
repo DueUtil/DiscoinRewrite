@@ -11,12 +11,16 @@ namespace Discoin;
  * 
  * @author MacDue
  */
-abstract class Object
+abstract class Object implements \MongoDB\BSON\Persistable
 {
   
-    public static function load($std_obj)
+    // Temp to update to BSON
+    public static function convert($std_obj)
     {
-        unset($std_obj->_id);
+        if ($std_obj instanceof Object) {
+            var_dump($std_obj);
+            return;
+        }
         foreach ($std_obj as $attr_name => $value)
             if (is_object($value))
                 $std_obj->$attr_name = (array) $value;
@@ -24,7 +28,22 @@ abstract class Object
         $class_name = get_called_class();
         // This is a great hack!
         $temp = preg_replace("@^O:8:\"stdClass\":@","O:".strlen($class_name).":\"$class_name\":",$temp);
-        return unserialize($temp);
+        $object = unserialize($temp);
+        $object->save();
+        echo "DoneThing-";
+    }
+
+    function bsonSerialize() {
+        return get_object_vars($this);
+    }
+
+    function bsonUnserialize(array $data) {
+        unset($data["_id"], $data["__pclass"]);
+        foreach ($data as $name => $value) {
+            // Fix arrays (that are set to objects for some reason)
+            if (is_object($value)) $value = (array) $value;
+            $this->{$name} = $value;
+        }
     }
     
     abstract public function save();

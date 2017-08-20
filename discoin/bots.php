@@ -71,18 +71,11 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
      */
     public function get_transactions()
     {
-        $raw_transactions = \MacDue\DB\get_collection_data("transactions",
-                                                          ["target" => $this->currency_code,
-                                                           "processed" => False]);
-        $transactions = array();
-        
-        foreach ($raw_transactions as $transaction_data) {
-            $transaction = Transaction::load($transaction_data);
-            $transaction->processed = True;
-            $transaction->process_time = time();
-            $transaction->save();
-            $transactions[] = $transaction;
-        }
+        $transactions = \MacDue\DB\get_collection_data("transactions",
+                                                       ["target" => $this->currency_code,
+                                                        "processed" => False]);
+        foreach ($transactions as $transaction)
+            $transaction->mark_as_processed();
         return $transactions;
     }
     
@@ -121,8 +114,6 @@ function add_bot($owner, $name, $currency_code, $to_discoin, $from_discoin)
 function get_bots()
 {
     $bots = \MacDue\DB\get_collection_data("bots");
-    foreach ($bots as $id => $bot_data)
-        $bots[$id] = Bot::load($bot_data);
     return $bots;
 }
 
@@ -131,7 +122,7 @@ function get_bot($query)
 {
     $bot_data = \MacDue\DB\get_collection_data("bots", $query);
     if (sizeof($bot_data) == 1)
-        return Bot::load($bot_data[0]);
+        return $bot_data[0];
     // Bot not found
     return null;
 }
