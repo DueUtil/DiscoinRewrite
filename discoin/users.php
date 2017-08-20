@@ -4,7 +4,6 @@
  * 
  * @author MacDue
  */
-
 namespace Discoin\Users;
 
 require_once __DIR__."/discoin.php";
@@ -48,8 +47,7 @@ class User extends \Discoin\Object implements \Discoin\Transactions\iHasTransact
      */
     public function exceeds_user_daily_limit($bot, $amount_discoin)
     {
-        if (time() - $this->first_transaction_time > TRANSACTION_LIMIT_RESET)
-        {
+        if (time() - $this->first_transaction_time > TRANSACTION_LIMIT_RESET) {
             // Reset user limits
             $this->daily_exchanges = array();
             $this->first_transaction_time = time();
@@ -68,8 +66,7 @@ class User extends \Discoin\Object implements \Discoin\Transactions\iHasTransact
      */
     public function exceeds_bot_global_limit($bot, $amount_discoin)
     {
-        if (time() - $bot->first_transaction_time > TRANSACTION_LIMIT_RESET)
-        {
+        if (time() - $bot->first_transaction_time > TRANSACTION_LIMIT_RESET) {
             // Reset bot limits
             $bot->exchanged_today = 0;
             $bot->first_transaction_time = time();
@@ -112,8 +109,7 @@ class User extends \Discoin\Object implements \Discoin\Transactions\iHasTransact
     {
         $raw_transactions = \MacDue\DB\get_collection_data("transactions", ["user" => $this->id]);
         $transactions = array();
-        foreach ($raw_transactions as $transaction_data)
-        {
+        foreach ($raw_transactions as $transaction_data) {
             $transaction = Transaction::load($transaction_data);
             $transactions[] = $transaction;
         }
@@ -153,32 +149,30 @@ EOT;
 function get_user($id)
 {
     $user_data = \MacDue\DB\get_collection_data("users", ["id" => $id]);
-    if (sizeof($user_data) == 0)
-        return null;
-    return User::load($user_data[0]);
+    if (sizeof($user_data) == 1)
+        return User::load($user_data[0]);
+    // User not found
+    return null;
 }
 
 
 function add_user($discord_user)
 {
     $user = get_user($discord_user["id"]);
-    if (is_null($user))
-    {
+    // If user is not yet verified
+    if (is_null($user)) {
+        // Check their email agaist the burner emails
         $burner_emails = explode("\n", file_get_contents(BURNER_EMAILS));
         $email_domain = \MacDue\Util\strip(explode("@", $discord_user["email"])[1]);
-        if (in_array($email_domain, $burner_emails)) 
-        {
+        if (in_array($email_domain, $burner_emails)) {
+            // Reject burner email
             echo "Nope! Please use a real email to verify with Discoin!";
             return False;
-        }
-        else
-        {
+        } else {
             echo "Verified! You can now use Discoin!";
             return new User($discord_user["id"]);
         }
-    }
-    else 
-    {
+    } else {
         echo "You're already verified! :D";
     }
 }

@@ -18,20 +18,23 @@ if (!$discord_auth->logged_in())
     unauthorized();
 
 $user_info = $discord_auth->get_user_details();
-if (!\Discoin\is_owner($user_info["id"])) 
+if (!\Discoin\is_owner($user_info["id"]))
     unauthorized();
 
-if (!isset($_POST["owner"], $_POST["botName"], $_POST["currencyCode"],
-           $_POST["toDiscoin"], $_POST["fromDiscoin"])) 
-{
-    // Add bot form
+
+if (!isset($_POST["owner"],
+           $_POST["botName"],
+           $_POST["currencyCode"],
+           $_POST["toDiscoin"],
+           $_POST["fromDiscoin"])) {
+    // Form data not sent!
+    // Show the form.
     header("Content-Type: text/html");
     echo file_get_contents("addbot.html");
-} 
-else 
-{
-    header("Content-Type: text/plain");
 
+} else {
+    // Bot data sent
+    header("Content-Type: text/plain");
     $owner = strip($_POST["owner"]);
     $bot_name = strip($_POST["botName"]);
     $currency_code = strtoupper(strip($_POST["currencyCode"]));
@@ -47,22 +50,17 @@ else
           && $from_discoin > 0
           && $limit_user > 0
           && $limit_global > $limit_user
-          && $from_discoin <= $to_discoin))
-    {
+          && $from_discoin <= $to_discoin)) {
         // You've broken the rules (I cba giving more details)
         http_response_code(400);
         echo "BAD REQUEST";
-    }
-    else 
-    {
+    } else {
         $bot_id = strtolower("$owner/$bot_name");
         $existing_bot = get_bot(["_id" => $bot_id]);
         // If there is no existing one
-        if (is_null($existing_bot))
-        {
+        if (is_null($existing_bot)) {
             // If there is no bot with that currency code
-            if (is_null(get_bot(["currency_code" => $currency_code])))
-            {
+            if (is_null(get_bot(["currency_code" => $currency_code]))) {
                 $bot = \Discoin\Bots\add_bot($owner,
                                              $bot_name,
                                              $currency_code,
@@ -71,14 +69,10 @@ else
                                              $limit_user,
                                              $limit_global);
                 echo $bot->auth_key;
-            }
-            else
-            {
+            } else {
                 echo "The currency code $currency_code is already in use!";
             }
-        }
-        else
-        {
+        } else {
             // Update bot
             $existing_bot->currency_code = $currency_code;
             $existing_bot->to_discoin = $to_discoin;

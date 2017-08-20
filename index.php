@@ -37,91 +37,84 @@ $get_request = $_SERVER['REQUEST_METHOD'] === "GET";
 header("Content-Type: text/plain");
 
 
-if ($get_request)
-{
+if ($get_request) {
     /*
      * Handle all GET requests.
      * Most things (meant for bots will be JSON)
      */
      
-    if ($request === "")
-    { 
+    if ($request === "") {
         // Welcome page
         echo $config->welcomeMessage;
-    }
-    else if ($request === "/rates")
-    {
+
+    } else if ($request === "/rates") {
         // Rates
         Discoin\Bots\show_rates();
-    }
-    else if ($request === "/transactions")
-    {
-        // Get get the bot using the auth token.
-        // Outputs Unauthorized (in json) if the token is invalid.
+
+    } else if ($request === "/transactions") {
+        // Get transactions
+        // needs a bot auth
         $bot = requires_discoin_auth();
         send_json($bot->get_transactions());
-    } 
-    else if (startsWith($request, "/transaction/"))
-    {
+
+    } else if (startsWith($request, "/transaction/")) {
         // Get the full details of a transaction (for devs)
         requires_discoin_auth();
         $receipt = explode("/", $request)[2];
         $transaction = \Discoin\Transactions\get_transaction($receipt);
-        if (!is_null($transaction))
+        if (!is_null($transaction)) {
+            // Send the full dump of the transaction
             send_json($transaction->full_details());
-        else
+        } else {
             send_json_error("transaction not found", 404);
-    }
-    else if (startsWith($request, "/verify"))
-    {
+        }
+
+    } else if (startsWith($request, "/verify")) {
         // User verification
         $discord_auth = requires_discord_auth("/verify");
-        if ($discord_auth->logged_in())
-        {
+        if ($discord_auth->logged_in()) {
             // Adds the user (if their email is not a spam one)
             Discoin\Users\add_user($discord_auth->get_user_details());
         }
-    } 
-    else if (startsWith($request, "/record"))
-    {
+
+    } else if (startsWith($request, "/record")) {
         // User transaction record
         $discord_auth = requires_discord_auth("/record");
-        if ($discord_auth->logged_in())
-        {
+        if ($discord_auth->logged_in()) {
             $user = Discoin\Users\get_user($discord_auth->get_user_details()["id"]);
-            if (!is_null($user))
+            if (!is_null($user)) {
+                // Print the users transaction record
                 $user->show_transactions();
-            else
+            } else {
+                // The user does not exist yet
                 echo "You need to verify before you view your record.";
+            }
         }
-    } else
-    {
+
+    } else {
         // Unknown GET (the fuck are you guys doing?)
         send_json_error("invalid get $request");
-    }  
-} 
-else 
-{
+    }
+} else {
     /*
      * Handle all POST requests.
      * Everything should be JSON (unless I've messed up)
      */
      
     $request_data = json_decode(file_get_contents("php://input"));
-    if (is_null($request_data) && json_last_error() !== JSON_ERROR_NONE)
-    {
+    if (is_null($request_data) && json_last_error() !== JSON_ERROR_NONE) {
         // Invalid json :(
         send_json_error("invalid json");
-    } else if ($request === "/transaction")
-    {
+
+    } else if ($request === "/transaction") {
         // Creates a transaction (if the bot auth is valid)
         $bot = requires_discoin_auth();
         Discoin\Transactions\Transaction::create_transaction($bot, $request_data);
-    } else if ($request === "/transaction/reverse")
-    {
+
+    } else if ($request === "/transaction/reverse") {
         // TODO: Reverse transactions.
-    } else
-    {
+
+    } else {
         // >:(
         send_json_error("invalid post $request");
     }

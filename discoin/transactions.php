@@ -4,7 +4,6 @@
  * 
  * @author MacDue
  */
- 
 namespace Discoin\Transactions;
 
 require_once __DIR__."/discoin.php";
@@ -54,14 +53,16 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         
         // Round to 2dp
         $amount = round($amount, 2);
-        if ($amount <= 0)
-            send_json_error("invalid amount");
+
+        // If amount is less too small error and die
+        if ($amount <= 0) send_json_error("invalid amount");
         
         $source_bot = \Discoin\Bots\get_bot(["currency_code" => $source]);
         $target_bot = \Discoin\Bots\get_bot(["currency_code" => $target]);
         
-        if (is_null($target_bot))
-            send_json_error("invalid destination currency");
+        // If target bot not found error and die
+        if (is_null($target_bot)) send_json_error("invalid destination currency");
+
         $this->amount_source = $amount;
         // These are also rounded to 2dp.
         $this->amount_discoin = round($amount * $source_bot->to_discoin, 2);
@@ -70,14 +71,15 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         $this->amount_target = round($this->amount_discoin / $target_bot->to_discoin * $target_bot->from_discoin, 2);
         
         // Limit checks
-        if ($user->exceeds_user_daily_limit($target_bot, $this->amount_discoin))
+        if ($user->exceeds_user_daily_limit($target_bot, $this->amount_discoin)) {
             // Daily limit
             Transaction::decline("per-user limit exceeded",
                                  ["limit" => $target_bot->limit_user,
-                                  "limit_now"=>$user->current_limit_for_bot($target_bot)]);
-        else if ($user->exceeds_bot_global_limit($target_bot, $this->amount_discoin))
+                                  "limit_now"=> $user->current_limit_for_bot($target_bot)]);
+        } else if ($user->exceeds_bot_global_limit($target_bot, $this->amount_discoin)) {
             // Global limit
             Transaction::decline("total limit exceeded", ["limit" => $target_bot->limit_global]);
+        }
                 
         // If we get here we're okay!
         $this->timestamp = time();
@@ -101,8 +103,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         http_response_code(400);
         $declined = ["status" => "declined", "reason" => $reason];
         // Limits
-        if (!is_null($limits))
-        {
+        if (!is_null($limits)) {
             // Must define a limit
             $declined["limit"] = $limits["limit"];
             // Secondary limit now
@@ -145,18 +146,24 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
      */
     public static function create_transaction($source_bot, $transaction_info)
     {
-        if (isset($transaction_info->user, $transaction_info->amount, $transaction_info->exchangeTo))
-        {
+        if (isset($transaction_info->user,
+                  $transaction_info->amount,
+                  $transaction_info->exchangeTo)) {
             $user = \Discoin\Users\get_user($transaction_info->user);
-            if (is_null($user))
+            if (is_null($user)) {
+                // User does not exist
                 Transaction::decline("verify required");
-            else if (!is_numeric($transaction_info->amount)) 
+            } else if (!is_numeric($transaction_info->amount)) {
+                // Your bot is sending me junk
                 Transaction::decline("amount NaN");
+            }
             $amount = floatval($transaction_info->amount);
-            return new Transaction($user, $source_bot->currency_code, strtoupper($transaction_info->exchangeTo), $amount);
-        } 
-        else
-        {
+            // Create the transaction object
+            return new Transaction($user,
+                                   $source_bot->currency_code,
+                                   strtoupper($transaction_info->exchangeTo),
+                                   $amount);
+        } else {
             send_json_error("bad post");
         }
         return null;
@@ -210,6 +217,7 @@ function get_transaction($receipt)
     $transaction_data = \MacDue\DB\get_collection_data("transactions", ["receipt" => $receipt]);
     if (sizeof($transaction_data) == 1)
         return Transaction::load($transaction_data[0]);
+    // Transaction not found
     return null;
 }
 

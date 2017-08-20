@@ -4,7 +4,6 @@
  * 
  * @author MacDue
  */
- 
 namespace Discoin;
 
 /*

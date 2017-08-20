@@ -4,7 +4,6 @@
  * 
  * @author MacDue
  */
- 
 namespace Discoin\Bots;
 
 require_once __DIR__."/discoin.php";
@@ -77,8 +76,7 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
                                                            "processed" => False]);
         $transactions = array();
         
-        foreach ($raw_transactions as $transaction_data)
-        {
+        foreach ($raw_transactions as $transaction_data) {
             $transaction = Transaction::load($transaction_data);
             $transaction->processed = True;
             $transaction->process_time = time();
@@ -112,10 +110,10 @@ function add_bot($owner, $name, $currency_code, $to_discoin, $from_discoin)
     
     require_once __DIR__."/discordauth.php";
     $user_info = $discord_auth->get_user_details();
-    
-    if (!\Discoin\is_owner($user_info["id"]))
-        return False;
-    
+
+    // Not a Discoin owner. Don't add bot
+    if (!\Discoin\is_owner($user_info["id"])) return False;
+
     return new Bot($owner, $name, $currency_code, $to_discoin, $from_discoin);
 }
 
@@ -132,9 +130,10 @@ function get_bots()
 function get_bot($query)
 {
     $bot_data = \MacDue\DB\get_collection_data("bots", $query);
-    if (sizeof($bot_data) == 0)
-        return null;
-    return Bot::load($bot_data[0]);
+    if (sizeof($bot_data) == 1)
+        return Bot::load($bot_data[0]);
+    // Bot not found
+    return null;
 }
 
 

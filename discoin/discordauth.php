@@ -5,7 +5,6 @@
  *
  * @author MacDue
  */
- 
 namespace Discoin\Auth;
 
 require_once __DIR__."/discoin.php";
@@ -22,25 +21,21 @@ $discord_auth = new \Discord\DiscordAuth(['clientId' => CLIENT_ID,
 session_start();
 
 
-// If on the verify page attempt to get auth and verify the user.
-if (!isset($_SESSION['access_token']))
-{
-    if (isset($_GET['code']))
-    {
+// If no auth yet
+if (!isset($_SESSION['access_token'])) {
+    if (isset($_GET['code'])) {
+        // Attempt to get access from code
         $token = $discord_auth->get_access_token($_GET['code']);
         $_SESSION['access_token'] = $token;
-    }
-    else if (!isset($_GET['error']))
-    {
+    } else if (!isset($_GET['error'])) {
         header('Location: ' . $discord_auth->get_auth_url());
         die();
     }
-} 
-else 
-{
+    // Possible auth could have failed.
+
+} else {
     // Just in case we lose the login.
-    if (!$discord_auth->logged_in())
-    {
+    if (!$discord_auth->logged_in()) {
         logout();
         \MacDue\Util\unauthorized();
     }
