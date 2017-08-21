@@ -25,13 +25,19 @@ session_start();
 if (!isset($_SESSION['access_token'])) {
     if (isset($_GET['code'])) {
         // Attempt to get access from code
-        $token = $discord_auth->get_access_token($_GET['code']);
-        $_SESSION['access_token'] = $token;
-    } else if (!isset($_GET['error'])) {
+        try {
+            $token = $discord_auth->get_access_token($_GET['code']);
+            $_SESSION['access_token'] = $token;
+        } catch (\Discord\OAuth\DiscordRequestException $discord_error) {
+            echo "Ծ_Ծ Could not login! Outdated/invalid code?";
+        }
+    } else if (isset($_GET['error'])) {
+        echo ".·´¯`(>▂<)´¯`·. Login error?! Did you cancle on me?!";
+    } else {
+        // Login redirect
         header('Location: ' . $discord_auth->get_auth_url());
         die();
     }
-    // Possible auth could have failed.
 
 } else {
     // Just in case we lose the login.

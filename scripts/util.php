@@ -7,6 +7,7 @@
 
 namespace MacDue\Util;
 
+require_once __DIR__."/../discoin/discoin.php";
 require_once __DIR__."/../discoin/bots.php";
 
 
@@ -80,6 +81,19 @@ function requires_discoin_auth()
 }
 
 
+function requires_discoin_owner()
+{
+    global $discord_auth;
+    // Assumes login has been attempted.
+    if (!$discord_auth->logged_in())
+        unauthorized();
+
+    $user_info = $discord_auth->get_user_details();
+    if (!\Discoin\is_owner($user_info["id"]))
+        unauthorized();
+}
+
+
 function unauthorized()
 {
     http_response_code(401);
@@ -105,5 +119,39 @@ function send_json_error($message, $status=400)
 
 function get(&$var, $default=null) {
     return isset($var) ? $var : $default;
+}
+
+/* VVV Random stuff */
+
+/** 
+* Converts a string, object, or array
+* that uses snake_case to camelCase
+* so I can use snake_case internally
+* but output camelCase.
+* 
+* @param mixed $snake_case an array, string, or object.
+* 
+* @return mixed an array, string, or object now in camelCase.
+*/
+function toCamelCase($snake_case)
+{
+    if (is_string($snake_case)) {
+        // Simple string
+        return _toCamelCase($snake_case);
+    } else {
+        // Arrays or objects
+        $snake_case_array = (array) $snake_case;
+        foreach($snake_case_array as $key => $value) {
+            unset($snake_case_array[$key]);
+            $snake_case_array[_toCamelCase($key)] = $value;
+        }
+        return is_array($snake_case) ? $snake_case_array : (object) $snake_case_array;
+    }
+}
+
+function _toCamelCase($snek_case_string)
+{
+    // converts a_string_like_this to aStringLikeThis
+    return preg_replace('/_([a-z0-9])/e', 'strtoupper("$1")', strtolower($snek_case_string));
 }
 ?>

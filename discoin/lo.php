@@ -1,7 +1,8 @@
 <?php
 // DEBUG Logout thing.
 $request = "";
+require_once __DIR__."/discordauth.php";
 
-require_once __DIR__."/../scripts/discordauth.php";
-\Discord\Auth\logout();
+if ($discord_auth->logged_in())
+    \Discoin\Auth\logout();
 ?>

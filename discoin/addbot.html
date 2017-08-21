@@ -1,10 +1,20 @@
 <form id="bot-info" action="/discoin/addbot.php" method="POST">
-  <h4>Bot details</h4>
+  <h2>Add/edit a bot</h2>
+  <h4>General details</h4>
+  Owner Discord ID<br>
   <input type="text" name="owner" placeholder="Owner ID">
-  <input type="text" name="botName" placeholder="Bot name">
+  <br>
+  Bot name<br>
+  <input type="text" name="botName" placeholder="Botty Mc Bot Face">
+  <h4>Exchange rates</h4>
+  1
   <input type="text" name="currencyCode" placeholder="Currency code">
+  =>
   <input type="number" name="toDiscoin" placeholder="To discoin rate" step="0.01">
-  <input type="number" name="fromDiscoin" placeholder="From discoin rate" step="0.01">
+  =>
+  <input type="number" name="fromDiscoin" placeholder="From discoin rate" step="0.01" value=1>
+  <br>
+  Note: From discoin should always be 1 unless you want a 'discoin tax'. 
   <br>
   <h4>Limits (optional)</h4>
   Per user daily limit<br>

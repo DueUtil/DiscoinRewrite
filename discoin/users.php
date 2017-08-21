@@ -143,11 +143,8 @@ EOT;
 
 function get_user($id)
 {
-    $user_data = \MacDue\DB\get_collection_data("users", ["id" => $id]);
-    if (sizeof($user_data) == 1)
-        return $user_data[0];
-    // User not found
-    return null;
+    return \MacDue\DB\get_object("users", ["id" => $id]);
+
 }
 
 

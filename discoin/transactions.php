@@ -16,17 +16,15 @@ require_once __DIR__."/../scripts/discordstuff.php";
 use function \MacDue\Util\send_json as send_json;
 use function \MacDue\Util\send_json_error as send_json_error;
 use function \MacDue\Util\format_timestamp as format_timestamp;
+use function \Discord\send_webhook as send_webhook;
 
 
 /*
  * A Discoin transaction
  * 
- * @param \Discoin\Users\User $user A user that is the sender
- * @param string $source The souce bot currency
- * @param string $target $user The target bot currency
- * @param float $amount The amount the transaction (in the source currency)
- * @param string $type Transaction type ("normal" or "refund")
- *  
+ * You cannot construct a transaction without using
+ *  Transaction::create or Transaction::reverse
+ * 
  * @author MacDue
  */
 class Transaction extends \Discoin\Object implements \JsonSerializable
@@ -36,66 +34,20 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
     public $source;
     public $target;
     public $receipt;
-    public $type;
     public $amount_source;
     public $amount_discoin;
     public $amount_target;
     public $processed = False;
     public $process_time = 0;
+    public $type = "normal";
 
 
-    function __construct($user, $source, $target, $amount, $type="normal")
+    private function __construct()
     {
-        $this->user = $user->id;
-        $this->source = $source;
-        $this->target = $target;
-        $this->type = $type;
-        
-        // Round to 2dp
-        $amount = round($amount, 2);
-
-        // If amount is less too small error and die
-        if ($amount <= 0) send_json_error("invalid amount");
-        
-        $source_bot = \Discoin\Bots\get_bot(["currency_code" => $source]);
-        $target_bot = \Discoin\Bots\get_bot(["currency_code" => $target]);
-        
-        // If target bot not found error and die
-        if (is_null($target_bot)) send_json_error("invalid destination currency");
-
-        $this->amount_source = $amount;
-        // These are also rounded to 2dp.
-        $this->amount_discoin = round($amount * $source_bot->to_discoin, 2);
-        // Fix so the rates work as expected.
-        // to_discoin also acts as how much a discoin is worth to a bot.
-        $this->amount_target = round($this->amount_discoin / $target_bot->to_discoin * $target_bot->from_discoin, 2);
-        
-        // Limit checks
-        if ($user->exceeds_user_daily_limit($target_bot, $this->amount_discoin)) {
-            // Daily limit
-            Transaction::decline("per-user limit exceeded",
-                                 ["limit" => $target_bot->limit_user,
-                                  "limit_now"=> $user->current_limit_for_bot($target_bot)]);
-        } else if ($user->exceeds_bot_global_limit($target_bot, $this->amount_discoin)) {
-            // Global limit
-            Transaction::decline("total limit exceeded", ["limit" => $target_bot->limit_global]);
-        }
-
-        // If we get here we're okay!
+        // A very badic constructor
+        // Everything is handled by create and reverse
         $this->timestamp = time();
-        $this->receipt = $this->generate_receipt();
-        $target_bot->log_transaction($this);
-        $user->log_transaction($this);
-        $this->approve($target_bot->limit_user - $user->daily_exchanges[$target]);
-        $this->save();
-        
-        // Send a nice little webhook!
-        $this->new_transaction_webhook();
-    }
-
-    private function generate_receipt()
-    {
-        return sha1(uniqid(time().$this->user, True));
+        $this->generate_receipt();
     }
 
     public function mark_as_processed()
@@ -112,20 +64,10 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
                    "limitNow" => $limit_now,
                    "resultAmount" => $this->amount_target]);
     }
-
-    private static function decline($reason, $limits=null)
+    
+    private static function decline($reason, $limits=[])
     {
-        http_response_code(400);
-        $declined = ["status" => "declined", "reason" => $reason];
-        // Limits
-        if (!is_null($limits)) {
-            // Must define a limit
-            $declined["limit"] = $limits["limit"];
-            // Secondary limit now
-            if (array_key_exists("limit_now", $limits))
-                $declined["limitNow"] =  $limits["limit_now"];
-        }
-        send_json($declined, 400);
+        Transaction::send_status("declined", $reason, 400, $limits);
         die();
     }
     
@@ -140,7 +82,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         $transaction_embed->add_field($name="Receipt", $value=$this->receipt);
         $transaction_embed->set_footer($text="Sent on ".format_timestamp($this->timestamp));
         
-        \Discord\send_webhook(TRANSACTION_WEBHOOK, ["embeds" => [$transaction_embed]]);
+        send_webhook(TRANSACTION_WEBHOOK, ["embeds" => [$transaction_embed]]);
     }
     
     /*
@@ -151,7 +93,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
      * 
      * returns Transaction The Discoin transaction
      */
-    public static function create_transaction($source_bot, $transaction_info)
+    public static function create($source_bot, $transaction_info)
     {
         if (isset($transaction_info->user,
                   $transaction_info->amount,
@@ -165,18 +107,98 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
                 // Your bot is sending me junk
                 Transaction::decline("amount NaN");
             }
+            $target = $transaction_info->exchangeTo;
             $amount = floatval($transaction_info->amount);
-            // Create the transaction object
-            return new Transaction($user,
-                                   $source_bot->currency_code,
-                                   strtoupper($transaction_info->exchangeTo),
-                                   $amount);
+            
+            $target_bot = \Discoin\Bots\get_bot(["currency_code" => $target]);
+            // If target bot not found error and die
+            if (is_null($target_bot)) send_json_error("invalid destination currency");
+            
+            // Round to 2dp
+            $amount = round($amount, 2);
+            // If amount is less too small error and die
+            if ($amount <= 0) send_json_error("invalid amount");
+            
+            $transaction = new self();
+            $transaction->user = $user->id;
+            $transaction->source = $source_bot->currency_code;
+            $transaction->target = $target_bot->currency_code;
+            
+            $transaction->amount_source = $amount;
+            // These are also rounded to 2dp.
+            $transaction->amount_discoin = round($amount * $source_bot->to_discoin, 2);
+            // Fix so the rates work as expected.
+            // to_discoin also acts as how much a discoin is worth to a bot.
+            $transaction->amount_target = round($transaction->amount_discoin / $target_bot->to_discoin * $target_bot->from_discoin, 2);
+            
+            // Limit checks
+            if ($user->exceeds_user_daily_limit($target_bot, $transaction->amount_discoin)) {
+                // Daily limit
+                Transaction::decline("per-user limit exceeded",
+                                     ["limit" => $target_bot->limit_user,
+                                      "limitNow"=> $user->current_limit_for_bot($target_bot)]);
+            } else if ($user->exceeds_bot_global_limit($target_bot, $transaction->amount_discoin)) {
+                // Global limit
+                Transaction::decline("total limit exceeded", ["limit" => $target_bot->limit_global]);
+            }
+
+            // If we get here we're okay!
+            $target_bot->log_transaction($transaction);
+            $user->log_transaction($transaction);
+            $transaction->approve($target_bot->limit_user - $user->daily_exchanges[$target]);
+            $transaction->save();
+            
+            // Send a nice little webhook!
+            $transaction->new_transaction_webhook();
         } else {
             send_json_error("bad post");
         }
-        return null;
+    }
+    
+    public static function reverse($receipt) {
+        // Get previous transaction
+        $transaction = get_transaction($receipt);
+        if (!is_null($transaction)) {
+            if ($transaction->type !== "refund") {
+                // Construct refund
+                $refund = new self();
+                $refund->type = "refund";
+                $refund->source = $transaction->target;
+                $refund->target = $transaction->source;
+                $refund->user = $transaction->user;
+                // A refund won't follow the normal rates.
+                $refund->amount_source = $transaction->amount_target;
+                $refund->amount_discoin = $transaction->amount_discoin;
+                $refund->amount_target = $transaction->amount_source;
+                $refund->timestamp = time();
+                $refund->generate_receipt();
+                $refund->save();
+                
+                // Notify reversal
+                send_webhook(TRANSACTION_WEBHOOK, ["content" => ":track_previous: Transaction ``$receipt`` has been reversed!"]);
+            } else {
+                // Refunding a refund could cause an infinite transaction loop.
+                Transaction::send_status("failed", "cannot refund a refund", 400);
+            }
+        
+        } else {
+            Transaction::send_status("failed", "transaction not found", 404);
+        }
     }
 
+    private function generate_receipt()
+    {
+        $this->receipt = sha1(uniqid(time().$this->user, True));
+    }
+    
+    private static function send_status($status, $reason, $http_status=200, $extras=[])
+    {
+        $transaction_status = ["status" => $status];
+        if (!is_null($reason))
+            $transaction_status["reason"] = $reason;
+        send_json(array_merge($transaction_status, $extras), $http_status);
+    }
+    
     // JSON for GET /transactions
     public function jsonSerialize()
     {
@@ -188,11 +210,20 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
                   "receipt" => $this->receipt];
     }
 
+    // Returns everything (for bot devs)
+    // (so is not like the normal json serialize)
+    public function get_full_details()
+    {
+        // Return camel case version of object vars.
+        // This is so it matches the rest of the API.
+        return \MacDue\Util\toCamelCase(get_object_vars($this));
+    }
+
     public function __toString()
     {
         $processed = $this->processed ? format_timestamp($this->process_time) : "UNPROCESSED";
         // Simple text formatting.
-        $record_format = "||%s|| %s || %s || %.2f %s => %.2f Discoin => %.2f %s";
+        $record_format = "||%s|| %s || %s || %.2f %s => %.2f Discoin => %.2f %s %s";
         return sprintf($record_format, 
                        $this->receipt,
                        format_timestamp($this->timestamp), 
@@ -201,14 +232,8 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
                        $this->source,
                        $this->amount_discoin,
                        $this->amount_target,
-                       $this->target);
-    }
-
-    // Returns everything (for bot devs)
-    // (so is not like the normal json serialize)
-    public function get_full_details()
-    {
-        return get_object_vars($this);
+                       $this->target,
+                       $this->type === "refund" ? "(REFUND)" : "");
     }
 
     public function save()
@@ -219,13 +244,10 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
 }
 
 
+
 function get_transaction($receipt)
 {
-    $transaction_data = \MacDue\DB\get_collection_data("transactions", ["receipt" => $receipt]);
-    if (sizeof($transaction_data) == 1)
-        return $transaction_data[0];
-    // Transaction not found
-    return null;
+    return \MacDue\DB\get_object("transactions", ["receipt" => $receipt]);
 }
 
 

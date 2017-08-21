@@ -269,7 +269,7 @@ class DiscordAuth
         if (!$this->check_auth() || !isset($_SESSION['access_token'])) {
             return array(
                 'login' => False,
-                'authURL' => get_auth_url()
+                'authURL' => $this->get_auth_url()
             );
         }
         else {

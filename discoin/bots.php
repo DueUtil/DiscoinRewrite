@@ -53,14 +53,14 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
         $this->from_discoin = $from_discoin;
         $this->limit_user = $limit_user;
         $this->limit_global = $limit_global;
-        $this->auth_key = $this->generate_api_key();
+        $this->generate_api_key();
         $this->save();
     }
     
     // Generates the API key
     private function generate_api_key()
     {
-        return hash('sha256',"DisnodeTeamSucks".time().$this->owner);
+        $this->auth_key = hash('sha256',"DisnodeTeamSucks".time().$this->owner);
     }
     
     /*
@@ -90,9 +90,14 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
         return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin $this->currency_code";
     }
     
+    public function get_id() 
+    {
+        return strtolower("$this->owner/$this->name");
+    }
+    
     public function save()
     {
-        \MacDue\DB\upsert("bots", strtolower("$this->owner/$this->name"), $this);
+        \MacDue\DB\upsert("bots", $this->get_id(), $this);
     }
 }
 
@@ -120,11 +125,7 @@ function get_bots()
 
 function get_bot($query)
 {
-    $bot_data = \MacDue\DB\get_collection_data("bots", $query);
-    if (sizeof($bot_data) == 1)
-        return $bot_data[0];
-    // Bot not found
-    return null;
+    return \MacDue\DB\get_object("bots", $query);
 }
 
 

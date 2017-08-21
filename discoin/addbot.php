@@ -13,13 +13,7 @@ use function \MacDue\Util\unauthorized as unauthorized;
 use function \MacDue\Util\strip as strip;
 use function \Discoin\Bots\get_bot as get_bot;
 
-
-if (!$discord_auth->logged_in())
-    unauthorized();
-
-$user_info = $discord_auth->get_user_details();
-if (!\Discoin\is_owner($user_info["id"]))
-    unauthorized();
+\MacDue\Util\requires_discoin_owner();
 
 
 if (!isset($_POST["owner"],
@@ -39,7 +33,9 @@ if (!isset($_POST["owner"],
     $owner = strip($_POST["owner"]);
     $bot_name = strip($_POST["botName"]);
     $currency_code = strtoupper(strip($_POST["currencyCode"]));
+    // 1 source => X Discoin
     $to_discoin = floatval($_POST["toDiscoin"]);
+    // X Discoin => X source (cannot be > 1)
     $from_discoin = floatval($_POST["fromDiscoin"]);
     $limit_user = floatval($_POST["limitUser"]);
     $limit_global = floatval($_POST["limitGlobal"]);
@@ -48,10 +44,10 @@ if (!isset($_POST["owner"],
           && is_string($bot_name)
           && is_string($currency_code)
           && strlen($currency_code) == 3
-          && $from_discoin > 0
+          && $to_discoin > 0
+          && $from_discoin <= 1
           && $limit_user > 0
-          && $limit_global > $limit_user
-          && $from_discoin <= $to_discoin)
+          && $limit_global > $limit_user)
     ) {
         // You've broken the rules (I cba giving more details)
         http_response_code(400);
