@@ -231,7 +231,6 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
 }
 
 
-
 function get_transaction($receipt)
 {
     return \MacDue\DB\get_object("transactions", ["receipt" => $receipt]);
