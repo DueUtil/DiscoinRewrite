@@ -7,13 +7,14 @@ $request = "/discoin/addbot.php";
 require_once __DIR__."/discoin.php";
 require_once __DIR__."/bots.php";
 require_once __DIR__."/discordauth.php";
+require_once __DIR__."/authutil.php";
 require_once __DIR__."/../scripts/util.php";
 
 use function \MacDue\Util\unauthorized as unauthorized;
 use function \MacDue\Util\strip as strip;
 use function \Discoin\Bots\get_bot as get_bot;
 
-\MacDue\Util\requires_discoin_owner();
+\Discoin\Util\requires_discoin_owner();
 
 
 if (!isset($_POST["owner"],

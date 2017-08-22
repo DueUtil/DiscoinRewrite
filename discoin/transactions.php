@@ -2,6 +2,11 @@
 /*
  * Stuff to handle Discoin transactions
  * 
+ * NOTE: send_json_error, send_json_status, and decline
+ * will stop the script. 
+ * (send_json_status will only stop the script if the status
+ * if "failed" or "error")
+ * 
  * @author MacDue
  */
 namespace Discoin\Transactions;
@@ -16,6 +21,7 @@ require_once __DIR__."/../scripts/discordstuff.php";
 use function \MacDue\Util\strip as strip;
 use function \MacDue\Util\send_json as send_json;
 use function \MacDue\Util\send_json_error as send_json_error;
+use function \MacDue\Util\send_json_status as send_json_status;
 use function \MacDue\Util\format_timestamp as format_timestamp;
 use function \Discord\send_webhook as send_webhook;
 
@@ -64,6 +70,9 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
      */
     public static function create($user, $amount, $source_bot, $target_bot)
     {
+        if (is_null($user)) {
+            Transaction::decline("verify required");
+        }
         $transaction = new self();
         $transaction->user = $user->id;
         $transaction->source = $source_bot->currency_code;
@@ -107,12 +116,10 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
     public static function reverse($transaction)
     {
         if ($transaction->type === "refund") {
-            Transaction::send_status("failed", "cannot refund a refund", 400);
-            die();
+            send_json_status("failed", "cannot refund a refund", 400);
         }
         if ($transaction->reversed) {
-            Transaction::send_status("failed", "transaction already revered", 400);
-            die();
+            send_json_status("failed", "transaction already revered", 400);
         }
         // Construct refund
         $refund = new self();
@@ -128,7 +135,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         $transaction->reversed = True;
         $transaction->save();
         // Okay!
-        Transaction::send_status("ok", null, 200, ["refundAmount" => $refund->amount_target]);
+        send_json_status("ok", null, 200, ["refundAmount" => $refund->amount_target]);
         // Notify reversal
         send_webhook(TRANSACTION_WEBHOOK,
                      ["content" => ":track_previous: Transaction ``$transaction->receipt`` has been reversed!"]);
@@ -157,7 +164,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
     
     private static function decline($reason, $limits=[])
     {
-        Transaction::send_status("declined", $reason, 400, $limits);
+        send_json_status("declined", $reason, 400, $limits);
         die();
     }
     
@@ -175,23 +182,19 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         send_webhook(TRANSACTION_WEBHOOK, ["embeds" => [$transaction_embed]]);
     }
     
-    private static function send_status($status, $reason, $http_status=200, $extras=[])
-    {
-        $transaction_status = ["status" => $status];
-        if (!is_null($reason))
-            $transaction_status["reason"] = $reason;
-        send_json(array_merge($transaction_status, $extras), $http_status);
-    }
-    
     // JSON for GET /transactions
     public function jsonSerialize()
     {
         
-        return ["user" => $this->user,
-                "timestamp" => $this->timestamp,
-                "source" => $this->source,
-                "amount" => $this->amount_target,
-                "receipt" => $this->receipt];
+        $details = ["user" => $this->user,
+                    "timestamp" => $this->timestamp,
+                    "source" => $this->source,
+                    "amount" => $this->amount_target,
+                    "receipt" => $this->receipt];
+        if ($this->type === "refund") {
+            $details["type"] = "refund";
+        }
+        return $details;
     }
 
     // Returns everything (for bot devs)
@@ -234,8 +237,6 @@ function get_transaction($receipt)
     return \MacDue\DB\get_object("transactions", ["receipt" => $receipt]);
 }
 
-// NOTE: send_json_error and decline will stop the script using die().
-
 /*
  * Helper function to validate request before creating the transaction
  */
@@ -245,21 +246,18 @@ function make_transaction($source_bot, $user_id, $amount, $exchange_to)
         send_json_error("invalid types");
     }
     if (!is_numeric($amount)) {
-        Transaction::decline("amount NaN");
+        send_json_error("amount NaN");
     }
     $amount = round(floatval($amount), 2);
     if ($amount <= 0) {
         send_json_error("invalid amount");
-    }
-    $user = \Discoin\Users\get_user($user_id);
-    if (is_null($user)) {
-        Transaction::decline("verify required");
     }
     $target_currency = strtoupper(strip($exchange_to));
     $target_bot = \Discoin\Bots\get_bot(["currency_code" => $target_currency]);
     if (is_null($target_bot)) {
         send_json_error("invalid destination currency");
     }
+    $user = \Discoin\Users\get_user($user_id);
     return Transaction::create($user, $amount, $source_bot, $target_bot);
 }
 
@@ -267,15 +265,17 @@ function make_transaction($source_bot, $user_id, $amount, $exchange_to)
 /*
  * Helper function to validate reveral before starting it.
  */
-function reverse_transaction($receipt)
+function reverse_transaction($bot, $receipt)
 {
     if (!is_string($receipt)) {
         send_json_error("invalid receipt");
     }
     $transaction = get_transaction($receipt);
     if (is_null($transaction)) {
-        Transaction::send_status("failed", "transaction not found", 404);
-        die();
+        send_json_status("failed", "transaction not found", 404);
+    }
+    if ($transaction->target !== $bot->currency_code) {
+        send_json_status("failed", "transaction must be to your bot", 400);
     }
     return Transaction::reverse($transaction);
 }

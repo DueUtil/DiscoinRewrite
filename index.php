@@ -20,14 +20,15 @@ require_once "discoin/discoin.php";
 require_once "discoin/transactions.php";
 require_once "discoin/bots.php";
 require_once "discoin/users.php";
+require_once "discoin/authutil.php";
 require_once "scripts/util.php";
 
 // Common functions
 use function \MacDue\Util\startsWith as startsWith;
-use function \MacDue\Util\requires_discord_auth as requires_discord_auth;
-use function \MacDue\Util\requires_discoin_auth as requires_discoin_auth;
 use function \MacDue\Util\send_json as send_json;
 use function \MacDue\Util\send_json_error as send_json_error;
+use function \Discoin\Util\requires_discord_auth as requires_discord_auth;
+use function \Discoin\Util\requires_discoin_auth as requires_discoin_auth;
 
 $config = Discoin\get_config();
 
@@ -59,7 +60,7 @@ if ($get_request) {
 
     } else if (startsWith($request, "/transaction/")) {
         // Get the full details of a transaction (for devs)
-        // requires_discoin_auth();
+        requires_discoin_auth();
         $receipt = explode("/", $request)[2];
         $transaction = \Discoin\Transactions\get_transaction($receipt);
         if (!is_null($transaction)) {
@@ -121,9 +122,10 @@ if ($get_request) {
 
     } else if ($request === "/transaction/reverse") {
         // Reverse a transaction given a receipt
+        $bot = requires_discoin_auth();
         if (isset($request_data->receipt)) {
             // Reverse/refund
-            Discoin\Transactions\reverse_transaction($request_data->receipt);
+            Discoin\Transactions\reverse_transaction($bot, $request_data->receipt);
         } else {
             send_json_error("no transaction receipt");
         }

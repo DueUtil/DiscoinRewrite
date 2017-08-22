@@ -7,10 +7,6 @@
 
 namespace MacDue\Util;
 
-require_once __DIR__."/../discoin/discoin.php";
-require_once __DIR__."/../discoin/bots.php";
-
-
 /** 
 * Converts an object to an associative array (lazy)
 * 
@@ -59,41 +55,6 @@ function strip($sting, $character=array("\r", "\n", " "))
 }
 
 
-function requires_discord_auth($page)
-{
-    $request = $page;
-    return require_once __DIR__."/../discoin/discordauth.php";
-}
-
-/* VVV General util stuff for logins and JSON VVV */
-
-function requires_discoin_auth()
-{
-    $headers = apache_request_headers();
-    $auth_key = \MacDue\Util\get($headers["Authorization"]);
-    if (!is_null($auth_key) && is_string($auth_key)) {
-        $bot = \Discoin\Bots\get_bot(["auth_key" => $auth_key]);
-        // If we found the bot they are authorized
-        if (!is_null($bot)) return $bot;
-    }
-    // Die! They've not got valid auth!
-    send_json_error("unauthorized", 401);
-}
-
-
-function requires_discoin_owner()
-{
-    global $discord_auth;
-    // Assumes login has been attempted.
-    if (!$discord_auth->logged_in())
-        unauthorized();
-
-    $user_info = $discord_auth->get_user_details();
-    if (!\Discoin\is_owner($user_info["id"]))
-        unauthorized();
-}
-
-
 function unauthorized()
 {
     http_response_code(401);
@@ -112,8 +73,20 @@ function send_json($data, $status=200)
 
 function send_json_error($message, $status=400)
 {
-    send_json(["status" => "error", "reason" => $message], $status);
-    die();
+    send_json_status("error", $message, $status);
+}
+
+
+function send_json_status($status, $reason, $http_status=200, $extras=[])
+{
+    $transaction_status = ["status" => $status];
+    if (!is_null($reason))
+        $transaction_status["reason"] = $reason;
+    send_json(array_merge($transaction_status, $extras), $http_status);
+    if ($status === "error" || $status === "failed") {
+        // Assume if something goes wrong the script should end.
+        die();
+    }
 }
 
 

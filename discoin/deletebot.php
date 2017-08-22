@@ -5,13 +5,14 @@
 $request = "/discoin/deletebot.php";
 
 require_once __DIR__."/discordauth.php";
+require_once __DIR__."/authutil.php";
 require_once __DIR__."/bots.php";
 require_once __DIR__."/../scripts/util.php";
 require_once __DIR__."/../scripts/dbconn.php";
 
 use function \MacDue\Util\strip as strip;
 
-\MacDue\Util\requires_discoin_owner();
+\Discoin\Util\requires_discoin_owner();
 
 
 if (!isset($_POST["currencyCode"])) {
