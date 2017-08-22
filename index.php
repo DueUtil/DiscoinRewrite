@@ -108,17 +108,26 @@ if ($get_request) {
 
     } else if ($request === "/transaction") {
         // Creates a transaction (if the bot auth is valid)
-        $bot = requires_discoin_auth();
-        Discoin\Transactions\Transaction::create($bot, $request_data);
+        $source_bot = requires_discoin_auth();
+        if (isset($request_data->user,
+                  $request_data->amount,
+                  $request_data->exchangeTo)
+        ) {
+            // Make the transaction
+            Discoin\Transactions\make_transaction($source_bot, ...array_values((array)$request_data));
+        } else {
+            send_json_error("bad post");
+        }
 
     } else if ($request === "/transaction/reverse") {
         // Reverse a transaction given a receipt
         if (isset($request_data->receipt)) {
             // Reverse/refund
-            Discoin\Transactions\Transaction::reverse($request_data->receipt);
+            Discoin\Transactions\reverse_transaction($request_data->receipt);
         } else {
             send_json_error("no transaction receipt");
         }
+
     } else {
         // >:(
         send_json_error("invalid post $request");
