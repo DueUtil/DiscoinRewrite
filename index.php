@@ -115,7 +115,7 @@ if ($get_request) {
                   $request_data->exchangeTo)
         ) {
             // Make the transaction
-            $transaction_info = $request_data;
+            $transaction_info = (array)$request_data;
             ksort($transaction_info);
             Discoin\Transactions\make_transaction($source_bot, ...array_values($transaction_info));
         } else {
