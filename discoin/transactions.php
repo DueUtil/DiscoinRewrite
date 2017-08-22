@@ -119,7 +119,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
             send_json_status("failed", "cannot refund a refund", 400);
         }
         if ($transaction->reversed) {
-            send_json_status("failed", "transaction already revered", 400);
+            send_json_status("failed", "transaction already reversed", 400);
         }
         // Construct refund
         $refund = new self();
