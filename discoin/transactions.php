@@ -240,7 +240,7 @@ function get_transaction($receipt)
 /*
  * Helper function to validate request before creating the transaction
  */
-function make_transaction($source_bot, $user_id, $amount, $exchange_to)
+function make_transaction($source_bot, $amount, $exchange_to, $user_id)
 {
     if (!(is_string($user_id) and is_string($exchange_to))) {
         send_json_error("invalid types");

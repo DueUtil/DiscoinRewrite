@@ -115,7 +115,9 @@ if ($get_request) {
                   $request_data->exchangeTo)
         ) {
             // Make the transaction
-            Discoin\Transactions\make_transaction($source_bot, ...array_values((array)$request_data));
+            $transaction_info = $request_data;
+            ksort($transaction_info);
+            Discoin\Transactions\make_transaction($source_bot, ...array_values($transaction_info));
         } else {
             send_json_error("bad post");
         }
