@@ -46,7 +46,7 @@ if (!isset($_POST["owner"],
           && is_string($currency_code)
           && strlen($currency_code) == 3
           && $to_discoin > 0
-          && $from_discoin <= 1
+          && 0 < $from_discoin && $from_discoin <= 1
           && $limit_user > 0
           && $limit_global > $limit_user)
     ) {
