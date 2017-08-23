@@ -49,8 +49,10 @@ if ($get_request) {
         echo $config->welcomeMessage;
 
     } else if ($request === "/rates") {
-        // Rates
         Discoin\Bots\show_rates();
+
+    } else if ($request === "/rates.json") {
+        Discoin\Bots\show_rates_json();
 
     } else if ($request === "/transactions") {
         // Get transactions

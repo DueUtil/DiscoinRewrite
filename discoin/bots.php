@@ -10,6 +10,8 @@ require_once __DIR__."/../scripts/dbconn.php";
 require_once __DIR__."/../scripts/util.php";
 
 use \Discoin\Transactions\Transaction as Transaction;
+use function \MacDue\Util\send_json as send_json;
+
 
 /*
  * A Bot account for Discoin
@@ -20,7 +22,7 @@ use \Discoin\Transactions\Transaction as Transaction;
  * @param float $to_discoin Bots currency value in Discoin
  * @param float $from_discoin Discoin value in bot (<= to_discoin)
  */
-class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransactions
+class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransactions, \JsonSerializable
 {  
     public $owner;
     public $currency_code;
@@ -80,9 +82,17 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
         
     public function __toString()
     {
-        return "$this->name: 1 $this->currency_code => $this->to_discoin Discoin => $this->from_discoin $this->currency_code";
+        $rates_format =  '%s: 1 %s => %.2f Discoin => %.2f %2$s';
+        return sprintf($rates_format, $this->name, $this->currency_code,
+                       $this->to_discoin, $this->from_discoin);
     }
-    
+
+    public function jsonSerialize()
+    {
+        return [$this->name => ["toDiscoin" => $this->to_discoin,
+                                "fromDiscoin" => $this->from_discoin]];
+    }
+
     public function get_id() 
     {
         return strtolower("$this->owner/$this->name");
@@ -127,8 +137,15 @@ function show_rates()
     foreach (get_bots() as $bot) 
         $rates .= "$bot\n";
     $rates .= "\n";
-    $rates .= "Note that certain transaction limits may exist. Details will be displayed when a transaction is approved.";
+    $rates .= "Note that certain transaction limits may exist.\n";
+    $rates .= "Details will be displayed when a transaction is approved.";
     echo $rates;
+}
+
+
+function show_rates_json()
+{
+    send_json(get_bots());
 }
 
 ?>
