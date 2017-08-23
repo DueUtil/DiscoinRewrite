@@ -82,7 +82,7 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
         
     public function __toString()
     {
-        $rates_format =  '%s: 1 %s => %.2f Discoin => %.2f %2$s';
+        $rates_format =  '%s: 1.00 %s => %.2f Discoin => %.2f %2$s';
         return sprintf($rates_format, $this->name, $this->currency_code,
                        $this->to_discoin, $this->from_discoin);
     }
