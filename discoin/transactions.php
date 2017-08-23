@@ -22,6 +22,8 @@ use function \MacDue\Util\send_json_error as send_json_error;
 use function \MacDue\Util\send_json_status as send_json_status;
 use function \MacDue\Util\format_timestamp as format_timestamp;
 use function \Discord\send_webhook as send_webhook;
+use function \Discoin\Bots\get_bot as get_bot;
+use function \Discoin\Users\get_user as get_user;
 
 
 /*
@@ -126,10 +128,17 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         $refund->amount_source = $transaction->amount_target;
         $refund->amount_discoin = $transaction->amount_discoin;
         $refund->amount_target = $transaction->amount_source;
+        // Fix limits
+        $bot = get_bot(["currency_code" => $transaction->target]);
+        $user = get_user($refund->user);
+        $user->daily_exchanges[$bot->currency_code] -= $refund->amount_discoin;
+        $bot->exchanged_today -= $refund->amount_discoin;
+        $user->save();
+        $bot->save();
+        // Okay!
         $refund->save();
         $transaction->reversed = True;
         $transaction->save();
-        // Okay!
         send_json_status("ok", null, 200, ["refundAmount" => $refund->amount_target]);
         // Notify reversal
         send_webhook(TRANSACTION_WEBHOOK,
@@ -245,11 +254,11 @@ function make_transaction($source_bot, $amount, $exchange_to, $user_id)
         send_json_error("invalid amount");
     }
     $target_currency = strtoupper(strip($exchange_to));
-    $target_bot = \Discoin\Bots\get_bot(["currency_code" => $target_currency]);
+    $target_bot = get_bot(["currency_code" => $target_currency]);
     if (is_null($target_bot)) {
         send_json_error("invalid destination currency");
     }
-    $user = \Discoin\Users\get_user($user_id);
+    $user = get_user($user_id);
     return Transaction::create($user, $amount, $source_bot, $target_bot);
 }
 
