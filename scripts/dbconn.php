@@ -1,8 +1,6 @@
 <?php
 /**
 * Crappy DB connection
-* 
-* @author MacDue
 */
 
 namespace MacDue\DB;
@@ -12,20 +10,16 @@ namespace MacDue\DB;
 require_once __DIR__."/../discoin/discoin.php";
 require_once __DIR__."/util.php";
 
-// Connect to the database.
 $manager = new \MongoDB\Driver\Manager("mongodb://".MONGO_USER.":".MONGO_PASS."@".MONGO_HOST."/admin?authMechanism=SCRAM-SHA-1");
 
 // TODO: Use the collection class for querys and deletes? 
 // (I did not see it in the docs then I looked)
-
 
 /**
 * Gets stuff from a collection
 *
 * @param string $collection The name of the collection
 * @param array[string] $query_array a query
-*
-* @author MacDue
 */
 function get_collection_data($collection, $query_array=[]) {
     global $manager;
@@ -41,8 +35,6 @@ function get_collection_data($collection, $query_array=[]) {
 *
 * @param string $collection The name of the collection
 * @param array[string] $query_array a query
-*
-* @author MacDue
 */
 function get_object($collection, $query_array) {
     $query_result = get_collection_data($collection, $query_array);
@@ -62,8 +54,6 @@ function get_object($collection, $query_array) {
 * @param string $_id The ID of the item
 * @param mixed $data The data
 * @param string $set_mode The mode of setting (default $set)
-*
-* @author MacDue
 */
 function upsert($collection, $_id, $data, $set_mode='$set') {
     global $manager;
@@ -80,8 +70,6 @@ function upsert($collection, $_id, $data, $set_mode='$set') {
 * @param string $_id The ID of the item
 * @param string $collection The name of the collection
 * @param int $limit The max amount of items to delete
-*
-* @author MacDue
 */
 function delete_document($collection, $_id, $limit=1) {
     global $manager;

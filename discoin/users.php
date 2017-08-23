@@ -1,8 +1,6 @@
 <?php
 /*
  * Stuff to handle Discoin users.
- * 
- * @author MacDue
  */
 namespace Discoin\Users;
 
@@ -20,8 +18,6 @@ define("BURNER_EMAILS", "https://raw.githubusercontent.com/wesbos/burner-email-p
  * A Discoin user
  * 
  * @param string $id A Discord user ID
- * 
- * @author MacDue
  */
 class User extends \Discoin\Object implements \Discoin\Transactions\iHasTransactions
 {

@@ -6,8 +6,6 @@
  * will stop the script. 
  * (send_json_status will only stop the script if the status
  * if "failed" or "error")
- * 
- * @author MacDue
  */
 namespace Discoin\Transactions;
 
@@ -31,8 +29,6 @@ use function \Discord\send_webhook as send_webhook;
  * 
  * You cannot construct a transaction without using
  *  Transaction::create or Transaction::reverse
- * 
- * @author MacDue
  */
 class Transaction extends \Discoin\Object implements \JsonSerializable
 {
@@ -52,7 +48,6 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
 
     private function __construct()
     {
-        // A very badic constructor
         // Everything is handled by create and reverse
         $this->timestamp = time();
         $this->generate_receipt();
@@ -181,7 +176,14 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
         
         send_webhook(TRANSACTION_WEBHOOK, ["embeds" => [$transaction_embed]]);
     }
-    
+
+    public function get_full_details()
+    {
+        // Return camel case version of object vars.
+        // This is so it matches the rest of the API.
+        return \MacDue\Util\toCamelCase(get_object_vars($this));
+    }
+
     // JSON for GET /transactions
     public function jsonSerialize()
     {
@@ -195,15 +197,6 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
             $details["type"] = "refund";
         }
         return $details;
-    }
-
-    // Returns everything (for bot devs)
-    // (so is not like the normal json serialize)
-    public function get_full_details()
-    {
-        // Return camel case version of object vars.
-        // This is so it matches the rest of the API.
-        return \MacDue\Util\toCamelCase(get_object_vars($this));
     }
 
     public function __toString()

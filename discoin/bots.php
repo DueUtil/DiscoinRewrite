@@ -1,8 +1,6 @@
 <?php
 /*
  * Stuff to handle bots (that use Discoin)
- * 
- * @author MacDue
  */
 namespace Discoin\Bots;
 
@@ -21,8 +19,6 @@ use \Discoin\Transactions\Transaction as Transaction;
  * @param string $currency_code The bot's currency code
  * @param float $to_discoin Bots currency value in Discoin
  * @param float $from_discoin Discoin value in bot (<= to_discoin)
- * 
- * @author MacDue
  */
 class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransactions
 {  
@@ -37,7 +33,6 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
     public $first_transaction_time = -1;
     
     
-    // Kinda a long constructor
     function __construct($owner,
                          $name,
                          $currency_code,
@@ -66,8 +61,6 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
     /*
      * Returns unprocessed transtions for a bot.
      * All returned transactions will be marked as processed.
-     * 
-     * @author MacDue
      */
     public function get_transactions()
     {
@@ -105,13 +98,12 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
 function add_bot($owner, $name, $currency_code, $to_discoin, $from_discoin)
 {
     global $discord_auth;
-    
     require_once __DIR__."/discordauth.php";
     $user_info = $discord_auth->get_user_details();
-
     // Not a Discoin owner. Don't add bot
-    if (!\Discoin\is_owner($user_info["id"])) return False;
-
+    if (!\Discoin\is_owner($user_info["id"])) {
+        return False;
+    }
     return new Bot($owner, $name, $currency_code, $to_discoin, $from_discoin);
 }
 

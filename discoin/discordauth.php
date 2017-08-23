@@ -2,8 +2,6 @@
 /**
  * Crappy Discord Auth implementation.
  * (there are not any docs for this)
- *
- * @author MacDue
  */
 namespace Discoin\Auth;
 
@@ -21,10 +19,8 @@ $discord_auth = new \Discord\DiscordAuth(['clientId' => CLIENT_ID,
 session_start();
 
 
-// If no auth yet
 if (!isset($_SESSION['access_token'])) {
     if (isset($_GET['code'])) {
-        // Attempt to get access from code
         try {
             $token = $discord_auth->get_access_token($_GET['code']);
             $_SESSION['access_token'] = $token;
@@ -53,7 +49,7 @@ function logout()
     session_destroy();
 }
 
-// Return auth.
+
 return $discord_auth;
 
 ?>

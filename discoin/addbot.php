@@ -41,32 +41,26 @@ if (!isset($_POST["owner"],
     $limit_user = floatval($_POST["limitUser"]);
     $limit_global = floatval($_POST["limitGlobal"]);
 
-    if (!(is_numeric($owner)
-          && is_string($bot_name)
-          && is_string($currency_code)
-          && strlen($currency_code) == 3
-          && $to_discoin > 0
-          && 0 < $from_discoin && $from_discoin <= 1
-          && $limit_user > 0
-          && $limit_global > $limit_user)
+    if (is_numeric($owner)
+        && is_string($bot_name)
+        && is_string($currency_code)
+        && strlen($currency_code) == 3
+        && $to_discoin > 0
+        && 0 < $from_discoin && $from_discoin <= 1
+        && $limit_user > 0
+        && $limit_global > $limit_user
     ) {
-        // You've broken the rules (I cba giving more details)
-        http_response_code(400);
-        echo "BAD REQUEST";
-    } else {
         $bot_id = strtolower("$owner/$bot_name");
         $existing_bot = get_bot(["_id" => $bot_id]);
         // If there is no existing one
         if (is_null($existing_bot)) {
             // If there is no bot with that currency code
             if (is_null(get_bot(["currency_code" => $currency_code]))) {
-                $bot = \Discoin\Bots\add_bot($owner,
-                                             $bot_name,
-                                             $currency_code,
-                                             $to_discoin,
-                                             $from_discoin,
-                                             $limit_user,
-                                             $limit_global);
+                $bot = \Discoin\Bots\add_bot(
+                    $owner, $bot_name, $currency_code,
+                    $to_discoin, $from_discoin,
+                    $limit_user, $limit_global
+                );
                 echo $bot->auth_key;
             } else {
                 echo "The currency code $currency_code is already in use!";
@@ -83,6 +77,10 @@ if (!isset($_POST["owner"],
             echo "Daily limit user: $existing_bot->limit_user\n";
             echo "Daily limit global: $existing_bot->limit_global";
         }
+    } else {
+        // You've broken the rules (I cba giving more details)
+        http_response_code(400);
+        echo "BAD REQUEST";
     }
 }
 ?>

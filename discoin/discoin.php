@@ -1,15 +1,11 @@
 <?php
 /*
  * General Discoin stuff.
- * 
- * @author MacDue
  */
 namespace Discoin;
 
 /*
  * Base object for other Discoin objects
- * 
- * @author MacDue
  */
 abstract class Object implements \MongoDB\BSON\Persistable
 {
@@ -35,10 +31,11 @@ abstract class Object implements \MongoDB\BSON\Persistable
 function is_owner($user)
 {
     $config = get_config();
-    
-    foreach ($config->owners as $owner)
-        if ($owner->user === $user)
+    foreach ($config->owners as $owner) {
+        if ($owner->user === $user) {
             return True;
+        }
+    }
     return False;
 }
 
@@ -74,7 +71,8 @@ function load_config()
 }
 
 
-if (!defined("CONFIG_LOADED"))
+if (!defined("CONFIG_LOADED")) {
     load_config();
+}
 
 ?>

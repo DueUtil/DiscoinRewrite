@@ -1,8 +1,6 @@
 <?php
 /**
  * Basic implementation for Discord stuff.
- *
- * @author MacDue
  */
  
 namespace Discord;
@@ -17,7 +15,6 @@ require_once __DIR__."/util.php";
  * @param string $title The title of the embed
  * @param int $colour An integer colour value
  * @param string $type The type of the embed defaults to ricg
- * @author MacDue
  */
 class Embed
 {
@@ -48,7 +45,6 @@ class Embed
      * @param string $name The name of the field
      * @param string $value The field content
      * @param boolean $inline Whether the field is inline or not
-     * @author MacDue
      */
     public function add_field($name, $value, $inline = False)
     {
@@ -65,7 +61,6 @@ class Embed
      *
      * @param string $text The footer text
      * @param string $icon_url A url to an image for the footer
-     * @author MacDue
      */
     public function set_footer($text, $icon_url = "")
     {
@@ -79,7 +74,6 @@ class Embed
      * Sets the main image of the embed
      *
      * @param string $url A url to an image
-     * @author MacDue
      */
     public function set_image($url)
     {
@@ -92,7 +86,6 @@ class Embed
      * Sets the thumbnail of the embed
      *
      * @param string $url A url to an image
-     * @author MacDue
      */
     public function set_thumbnail($url)
     {
@@ -105,7 +98,6 @@ class Embed
      * Sets the embeds video
      *
      * @param string $url A url to a video
-     * @author MacDue
      */
     public function set_video($url)
     {
@@ -120,7 +112,6 @@ class Embed
      *
      * @param string $name Providers name
      * @param string $url A url?
-     * @author MacDue
      */
     public function set_provider($name, $url)
 
@@ -137,7 +128,6 @@ class Embed
      * @param string $name Author name
      * @param string $url A url to the authors site or whatever
      * @paran string $icon_url A url to an image icon
-     * @author MacDue
      */
     public function set_author($name, $url = "", $icon_url = "")
     {
@@ -175,7 +165,6 @@ class Embed
  * </code>
  *
  * You only need to pass embeds or content (though you can do both if you like).
- * @author MacDue
  */
 function send_webhook($webhook_url, $params)
 {
@@ -206,7 +195,6 @@ function send_webhook($webhook_url, $params)
  * @param array[string] $client_details Client details
  * (clientId, clientSecret, redirectUri)
  * @param string $scopes The scopes the client needs.
- * @author MacDue
  */
 class DiscordAuth
 {
@@ -253,9 +241,11 @@ class DiscordAuth
      */
     public function get_user_details()
     {
-        if ($this->check_auth() && isset($_SESSION['access_token'])) 
+        if ($this->check_auth() && isset($_SESSION['access_token'])) {
             return $this->provider->getResourceOwner($_SESSION['access_token'])->toArray();
-        else return null;
+        } else { 
+          return null;
+        }
     }
     
     /**
