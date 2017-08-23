@@ -89,7 +89,8 @@ class Bot extends \Discoin\Object implements \Discoin\Transactions\iHasTransacti
 
     public function jsonSerialize()
     {
-        return [$this->name => ["toDiscoin" => $this->to_discoin,
+        return [$this->name => ["currencyCode" => $this->currency_code,
+                                "toDiscoin" => $this->to_discoin,
                                 "fromDiscoin" => $this->from_discoin]];
     }
 
