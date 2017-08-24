@@ -168,7 +168,7 @@ class Transaction extends \Discoin\Object implements \JsonSerializable
     
     private static function decline($reason, $limits=[])
     {
-        send_json_status("declined", $reason, 400, $limits);
+        send_json_status("declined", $reason, 403, $limits);
         die();
     }
     
@@ -276,7 +276,7 @@ function reverse_transaction($bot, $receipt)
         send_json_status("failed", "transaction not found", 404);
     }
     if ($transaction->target !== $bot->currency_code) {
-        send_json_status("failed", "transaction must be to your bot", 400);
+        send_json_status("failed", "transaction must be to your bot", 403);
     }
     return Transaction::reverse($transaction);
 }
