@@ -9,6 +9,8 @@ This project is by no means perfect and could be much improved with better struc
 
 By MacDue and Fires
 
-API Spec: https://github.com/Discoin/docs/blob/master/api.md
+API Spec: https://discoin.gitbooks.io/docs/api.html
+
+Docs: https://discoin.gitbooks.io/docs/
 
 A rewite of Discoin by austinhuang.
